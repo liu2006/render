@@ -1,6 +1,6 @@
 #define LOG_MESSAGE_IMPLEMETATION
-#define CLEAN_IMPLEMENTATION
 #define VULKAN_IMPLEMENTATION
+#define CLEANUP_IMPLEMENTATION
 #define GLFW_IMPLEMENTATION
 #define INSTANCE_IMPLEMENTATION
 #define PHYSICAL_DEVICE_IMPLEMENTATION
@@ -24,14 +24,21 @@ const uint32_t deviceExtensionCount = sizeof(requiredDeviceExtensions) / sizeof(
 
 int main(int argc, const char **argv)
 {
+    if (argc < 2) {
+        logMessage(LOG_ERROR, "Usage: %s <shader-file>\n", argv[0]);
+        return false;
+    }
     Glfw glfw = { .width = width, .height = height, .rate = rate};
     Vulkan vulkan = {0};
     Instance instance = {0};
     PhysicalDevice physicalDevice = {0};
     LogicalDevice logicalDevice = {0};
     SwapChain swapChain = {0};
-    Pipeline pipeline = {0};
-
+    Pipeline pipeline = {
+	.fname = argv[1],
+	.spirvSize = 0,
+	.spirvBuffer = 0
+    };
     Renderer renderer = {
 	.glfw = &glfw,
 	.vulkan = &vulkan,
@@ -41,8 +48,7 @@ int main(int argc, const char **argv)
 	.swapChain = &swapChain,
 	.pipeline = &pipeline
     };
-    
-    if (!run(argc, argv, &renderer)) return 1;
+    if (!run(&renderer)) return 1;
     
     struct timespec startTime, currentTime;
     clock_gettime(CLOCK_MONOTONIC, &startTime);
@@ -56,6 +62,6 @@ int main(int argc, const char **argv)
     printf("\n");
     fflush(stdout);
 
-    clean(&renderer);
+    cleanup(&renderer);
     return 0;
 }

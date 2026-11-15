@@ -1,16 +1,16 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -g -O0 -MMD -MP -std=c23
-CPPFLAGS := -Iinclude -Ivendor/glfw/include -Ivendor/vulkan/x86_64/include
+CPPFLAGS := -Iinclude -Isrc -Ivendor/glfw/include -Ivendor/vulkan/x86_64/include
 LDFLAGS := -Lvendor/vulkan/x86_64/lib/VulkanLoader/lib -Lvendor/glfw/lib64 
 LDLIBS := -lglfw3 -lvulkan -lm	
 
-BUIDIR := build
-TARGET := $(BUIDIR)/render
+BUILDDIR := build
+TARGET := $(BUILDDIR)/render
 
 SRCDIR := src
 SRCS := $(wildcard $(SRCDIR)/*.c)
 
-OBJDIR := $(BUIDIR)/objdir
+OBJDIR := $(BUILDDIR)/objdir
 OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 .PHONY: clean all
@@ -18,7 +18,7 @@ OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 all: $(TARGET)
 -include $(OBJS:.o=.d)
 
-$(TARGET) : $(OBJS) | $(BUIDIR)
+$(TARGET) : $(OBJS) | $(BUILDDIR)
 	$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.c | $(OBJDIR)
@@ -26,8 +26,8 @@ $(OBJDIR)/%.o : $(SRCDIR)/%.c | $(OBJDIR)
 
 $(OBJDIR):
 	mkdir -p $@ 
-$(BUIDIR):
+$(BUILDDIR):
 	mkdir -p $@
 clean:
-	rm -rf $(OBJDIR) $(TARGET) $(BUIDIR)
+	rm -rf $(OBJDIR) $(TARGET) $(BUILDDIR)
 

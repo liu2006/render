@@ -98,6 +98,7 @@ typedef struct {
 } SurfaceTask;
 
 typedef struct {
+    const char *const fname;
     size_t spirvSize;
     uint32_t *spirvBuffer;
 } Pipeline;
@@ -118,8 +119,8 @@ typedef struct {
 } Renderer;
 
 void logMessage(LogLevel level, const char *format, ...);
-bool run(int argc, const char **argv, Renderer *renderer);
-void clean(Renderer *renderer);
+bool run(Renderer *renderer);
+void cleanup(Renderer *renderer);
 
 bool createWindow(Renderer *renderer);
 void errorCallback(int errorCode, const char *description);
@@ -133,7 +134,7 @@ int createLogicalDevice(Renderer *renderer);
 
 int createSwapChain(Renderer *renderer);
 
-int createPipeline(Renderer *renderer, const char *fname);
+int createPipeline(Renderer *renderer);
 
 int createVertexBuffer(Renderer *renderer);
 
@@ -151,8 +152,8 @@ int createVertexBuffer(Renderer *renderer);
     #include "vulkan.h"
 #endif
 
-#if defined(CLEAN_IMPLEMENTATION)
-    #include "clean.h"
+#if defined(CLEANUP_IMPLEMENTATION)
+    #include "cleanup.h"
 #endif
 
 #if defined(GLFW_IMPLEMENTATION)
