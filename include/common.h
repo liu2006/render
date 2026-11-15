@@ -1,5 +1,6 @@
-#ifndef CORE_H
-#define CORE_H
+#ifndef COMMON_H
+#define COMMON_H
+#define _POSIX_C_SOURCE 200809L 
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -118,6 +119,7 @@ typedef struct {
 
 void logMessage(LogLevel level, const char *format, ...);
 bool run(int argc, const char **argv, Renderer *renderer);
+void clean(Renderer *renderer);
 
 bool createWindow(Renderer *renderer);
 void errorCallback(int errorCode, const char *description);
@@ -129,16 +131,28 @@ int pickPhysicalDevice(Renderer *renderer);
 
 int createLogicalDevice(Renderer *renderer);
 
-bool createSwapChain(Renderer *renderer);
+int createSwapChain(Renderer *renderer);
 
-bool createPipeline(Renderer *renderer, const char *fname);
+int createPipeline(Renderer *renderer, const char *fname);
 
-bool createVertexBuffer(Renderer *renderer);
+int createVertexBuffer(Renderer *renderer);
 
 #ifdef NDEBUG
 #define ENABLE_VALIDATION 0
 #else 
 #define ENABLE_VALIDATION 1
+#endif
+
+#if defined(LOG_MESSAGE_IMPLEMETATION)
+    #include "logMessage.h"
+#endif
+
+#if defined(VULKAN_IMPLEMENTATION)
+    #include "vulkan.h"
+#endif
+
+#if defined(CLEAN_IMPLEMENTATION)
+    #include "clean.h"
 #endif
 
 #if defined(GLFW_IMPLEMENTATION)
@@ -168,6 +182,5 @@ bool createVertexBuffer(Renderer *renderer);
 #if defined(VERTEX_BUFFER_IMPLEMENTATION)
     #include "vertexBuffer.h"
 #endif
-
 
 #endif 

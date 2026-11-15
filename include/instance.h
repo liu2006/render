@@ -1,9 +1,10 @@
 #ifndef INSTANCE_H
 #define INSTANCE_H
 
-#include "vulkan.h"
-
 #if defined(INSTANCE_IMPLEMENTATION)
+    extern const char *const requiredLayers[];
+    extern const uint32_t layerCount;
+
     void *enableLayers(void *arg)
     {
 	LayerTask *layerTask = (LayerTask *)arg;
@@ -14,7 +15,7 @@
 	VkLayerProperties *layerProperties = NULL;
 	
 #if ENABLE_VALIDATION
-	instance->layerCount = sizeof(requiredLayers) / sizeof(requiredLayers[0]);
+	instance->layerCount = layerCount;
 	instance->layers = malloc(sizeof(*instance->layers) * instance->layerCount);
 	for (uint32_t i = 0; i < instance->layerCount; ++i) {
 	    instance->layers[i] = strdup(requiredLayers[i]);

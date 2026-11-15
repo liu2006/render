@@ -2,7 +2,7 @@
 #define VERTEX_BUFFER_H
 
 #if defined(VERTEX_BUFFER_IMPLEMENTATION)
-    bool createVertexBuffer(Renderer *renderer)
+    int createVertexBuffer(Renderer *renderer)
     {
 	Vulkan *vulkan = renderer->vulkan;
 
@@ -84,7 +84,7 @@
 	    vkDestroyBuffer(vulkan->device, stagingBuffer, NULL);
 	}
 	vkFreeMemory(vulkan->device, stagingBufferMemory, NULL);
-	return (vulkan->result != VK_SUCCESS) ? false : true;
+	return vulkan->result;
     }
 
 #endif

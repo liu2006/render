@@ -1,12 +1,10 @@
 #ifndef GLFW_H
 #define GLFW_H
-#include "common.h"
 
 #if defined(GLFW_IMPLEMENTATION) 
     bool createWindow(Renderer *renderer)
     {
 	Glfw *glfw = renderer->glfw;
-
 	glfwSetErrorCallback(errorCallback);
 	if (!glfwInit()) {
 	    logMessage(LOG_ERROR, "Failed to initialize GLFW\n");

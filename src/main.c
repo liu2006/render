@@ -1,3 +1,5 @@
+#define LOG_MESSAGE_IMPLEMETATION
+#define CLEAN_IMPLEMENTATION
 #define VULKAN_IMPLEMENTATION
 #define GLFW_IMPLEMENTATION
 #define INSTANCE_IMPLEMENTATION
@@ -9,6 +11,16 @@
 #define VERTEX_BUFFER_IMPLEMENTATION
 
 #include "common.h"
+
+constexpr int width = 1920;
+constexpr int height = 1080;
+constexpr int rate = 165;
+
+const char *const requiredLayers[] = { "VK_LAYER_KHRONOS_validation" };
+const uint32_t layerCount = sizeof(requiredLayers) / sizeof(requiredLayers[0]);
+
+const char *const requiredDeviceExtensions[] = { "VK_KHR_swapchain" };
+const uint32_t deviceExtensionCount = sizeof(requiredDeviceExtensions) / sizeof(requiredDeviceExtensions[0]);
 
 int main(int argc, const char **argv)
 {
@@ -43,4 +55,7 @@ int main(int argc, const char **argv)
     }
     printf("\n");
     fflush(stdout);
+
+    clean(&renderer);
+    return 0;
 }

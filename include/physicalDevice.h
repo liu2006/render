@@ -1,7 +1,10 @@
 #ifndef PHYSICAL_DEVICE_H
 #define PHYSICAL_DEVICE_H
-
+ 
 #if defined(PHYSICAL_DEVICE_IMPLEMENTATION)
+    extern const char *const requiredDeviceExtensions[];
+    extern const uint32_t deviceExtensionCount;
+
     void *findQueueFamily(void *arg) 
     {
 	QueueTask *queueTask = (QueueTask *)arg;
@@ -120,7 +123,7 @@
 	    logMessage(LOG_ERROR, "Failed to enumerate device extension properties [%d]\n", vulkan->result);
 	    goto clean;
 	}
-	physicalDevice->deviceExtensionCount = sizeof(requiredDeviceExtensions) / sizeof(requiredDeviceExtensions[0]);
+	physicalDevice->deviceExtensionCount = deviceExtensionCount;
 	physicalDevice->deviceExtensions = malloc(sizeof(*physicalDevice->deviceExtensions) * physicalDevice->deviceExtensionCount);
 	for (uint32_t i = 0; i < physicalDevice->deviceExtensionCount; ++i) {
 	    physicalDevice->deviceExtensions[i] = strdup(requiredDeviceExtensions[i]);

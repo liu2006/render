@@ -2,7 +2,7 @@
 #define PIPELINE_H
 
 #if defined(PIPELINE_IMPLEMENTATION)
-    bool createPipeline(Renderer *renderer, const char *fname) 
+    int createPipeline(Renderer *renderer, const char *fname) 
     {	
 	Vulkan *vulkan = renderer->vulkan;
 	Pipeline *pipeline = renderer->pipeline;
@@ -115,13 +115,10 @@
 	    .pDynamicStates = dynamicStates
 	};
 	
-
-
-	
 	vulkan->result = VK_SUCCESS;
 	
  clean:
-	return (vulkan->result != VK_SUCCESS) ? false : true;
+	return vulkan->result;
     }
 #endif
 

@@ -2,7 +2,6 @@
 #define SWAPCHAIN_H
 
 #if defined(SWAPCHAIN_IMPLEMENTATION)
-
     void *pickSurfaceProperties(void *arg)
     {
 	SurfaceTask *surfaceTask = (SurfaceTask *)arg;
@@ -59,12 +58,13 @@
 	return NULL;
     }
     
-    bool createSwapChain(Renderer *renderer) 
+    int createSwapChain(Renderer *renderer) 
     {
 	Glfw *glfw = renderer->glfw;
 	Vulkan *vulkan = renderer->vulkan;
 	PhysicalDevice *physicalDevice = renderer->physicalDevice;
 	SwapChain *swapChain = renderer->swapChain;
+	bool joined = false;
 
 	vulkan->result = glfwCreateWindowSurface(vulkan->instance, glfw->window, NULL, &vulkan->surface);
 	if (vulkan->result != VK_SUCCESS) {
@@ -77,12 +77,11 @@
 	    .taskRes = VK_SUCCESS
 	};
 	pthread_t surfaceThread;
-	bool joined = false;
+
 	if ((pthread_create(&surfaceThread, NULL, pickSurfaceProperties, &surfaceTask) != 0)) {
 	    logMessage(LOG_ERROR, "Failed to create surface thread\n");
 	    goto clean;
 	}
-	
 	VkSurfaceCapabilitiesKHR surfaceCapabilities;
 	vulkan->result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vulkan->physicalDevice, 
 							     vulkan->surface, 
@@ -91,6 +90,7 @@
 	    logMessage(LOG_ERROR, "Failed to get surface capabilities [%d]\n", vulkan->result);
 	    goto clean;
 	} 
+
 	int width, height;
 	glfwGetFramebufferSize(glfw->window, &width, &height);
 	swapChain->surfaceExtent.width = width;
@@ -271,7 +271,7 @@
 	if (!joined) pthread_join(surfaceThread, NULL);
 	free(swapChain->presentModes);
 	free(swapChain->formats);
-	return (vulkan->result != VK_SUCCESS) ? false : true;
+	return vulkan->result; 
     } 
 #endif
 
