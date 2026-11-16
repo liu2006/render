@@ -43,6 +43,11 @@ typedef struct {
     VkDeviceMemory msaaImageMemory;
     VkImageView msaaImageView;
 
+    VkCommandPool commandPool;
+    
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
+
     VkShaderModule shaderModule;
 } Vulkan;
 
@@ -98,15 +103,15 @@ typedef struct {
 } SurfaceTask;
 
 typedef struct {
+    float position[2];
+    float color[3];
+} Vertex;
+
+typedef struct {
     const char *const fname;
     size_t spirvSize;
     uint32_t *spirvBuffer;
 } Pipeline;
-
-typedef struct {
-    float position[2];
-    float color[3];
-} Vertex;
 
 typedef struct {
     Glfw *glfw;
@@ -134,9 +139,11 @@ int createLogicalDevice(Renderer *renderer);
 
 int createSwapChain(Renderer *renderer);
 
-int createPipeline(Renderer *renderer);
-
+int createCommandPool(Renderer *renderer);
+ 
 int createVertexBuffer(Renderer *renderer);
+
+int createPipeline(Renderer *renderer);
 
 #ifdef NDEBUG
 #define ENABLE_VALIDATION 0
@@ -148,16 +155,16 @@ int createVertexBuffer(Renderer *renderer);
     #include "logMessage.h"
 #endif
 
-#if defined(VULKAN_IMPLEMENTATION)
-    #include "vulkan.h"
-#endif
-
 #if defined(CLEANUP_IMPLEMENTATION)
     #include "cleanup.h"
 #endif
 
 #if defined(GLFW_IMPLEMENTATION)
     #include "glfw.h"
+#endif
+
+#if defined(VULKAN_IMPLEMENTATION)
+    #include "vulkan.h"
 #endif
 
 #if defined(INSTANCE_IMPLEMENTATION)
@@ -176,12 +183,16 @@ int createVertexBuffer(Renderer *renderer);
     #include "swapChain.h"
 #endif
 
-#if defined(PIPELINE_IMPLEMENTATION)
-    #include "pipeline.h"
+#if defined(COMMAND_POOL_IMPLEMENTATION)
+    #include "commandPool.h"
 #endif
 
 #if defined(VERTEX_BUFFER_IMPLEMENTATION)
     #include "vertexBuffer.h"
+#endif
+    
+#if defined(PIPELINE_IMPLEMENTATION)
+    #include "pipeline.h"
 #endif
 
 #endif 

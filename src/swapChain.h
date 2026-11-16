@@ -52,7 +52,6 @@
 		break;
 	    } 
 	}
-	
  clean:
 	surfaceTask->taskRes = localRes;
 	return NULL;
@@ -102,7 +101,6 @@
 	if (swapChain->imageCount < surfaceCapabilities.minImageCount) {
 	    swapChain->imageCount = surfaceCapabilities.minImageCount;
 	}
-	
 	if ((pthread_join(surfaceThread, NULL)) != 0) {
 	    logMessage(LOG_ERROR, "Failed to join surface thread\n");
 	    goto clean;
@@ -113,7 +111,6 @@
 	    logMessage(LOG_ERROR, "Failed to pick surface properties [%d]\n", surfaceTask.taskRes);
 	    goto clean;
 	}
-	
 	const VkSwapchainCreateInfoKHR swapChainInfo = {
 	    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
 	    .pNext = NULL,
@@ -140,6 +137,7 @@
 	    goto clean;
 	}     
 	logMessage(LOG_INFO, "Swap chain created\n", vulkan->result);
+
 	vulkan->images = malloc(sizeof(*vulkan->images) * swapChain->imageCount);
 	vulkan->result = vkGetSwapchainImagesKHR(vulkan->device, vulkan->swapChain, &swapChain->imageCount, vulkan->images);
 	if (vulkan->result != VK_SUCCESS) {

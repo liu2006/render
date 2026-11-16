@@ -13,8 +13,15 @@
 	if (vkDeviceWaitIdle(vulkan->device) != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to wait for device idle");
 	}
+	
 	vkDestroyShaderModule(vulkan->device, vulkan->shaderModule, NULL);
 	free(pipeline->spirvBuffer);
+
+	vkDestroyBuffer(vulkan->device, vulkan->vertexBuffer, NULL);
+	vkFreeMemory(vulkan->device, vulkan->vertexBufferMemory, NULL);
+
+	vkDestroyCommandPool(vulkan->device, vulkan->commandPool, NULL);
+	
 	vkDestroyImageView(vulkan->device, vulkan->msaaImageView, NULL);
 	vkDestroyImage(vulkan->device, vulkan->msaaImage, NULL);
 	vkFreeMemory(vulkan->device, vulkan->msaaImageMemory, NULL);

@@ -34,7 +34,6 @@
 	for (uint32_t i = 0; i < layerPropertyCount; ++i) {
 	    logMessage(LOG_INFO, "Available layer: [%s]\n", layerProperties[i].layerName);	
 	}
-
 	for (uint32_t i = 0; i < instance->layerCount; ++i) {
 	    bool found = false;
 	    for (uint32_t j = 0; j < layerPropertyCount; ++j) {
