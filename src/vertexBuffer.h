@@ -15,117 +15,35 @@
 
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
-	const VkBufferCreateInfo stagingBufferInfo = {
-	    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-	    .pNext = NULL,
-	    .flags = 0,
+	
+	const Buffer stagingBufferInfo = {
 	    .size = sizeof(vertices),
+	    .requirementSize = 0,
 	    .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-	    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-	    .queueFamilyIndexCount = 0,
-	    .pQueueFamilyIndices = NULL
+	    .buffer = &stagingBuffer,
+	    .memory = &stagingBufferMemory,
+	    .propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 	};
-	vulkan->result = vkCreateBuffer(vulkan->device, &stagingBufferInfo, NULL, &stagingBuffer);
-	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create staging buffer for vertices\n");
-	    goto clean;
-	} 
+	if (!createBuffer(vulkan, &stagingBufferInfo)) goto clean;
+	void *data = NULL;
 	
-	VkMemoryRequirements memoryRequirements;
-	vkGetBufferMemoryRequirements(vulkan->device, stagingBuffer, &memoryRequirements);
-
-	VkPhysicalDeviceMemoryProperties memoryProperties;
-	vkGetPhysicalDeviceMemoryProperties(vulkan->physicalDevice, &memoryProperties);
-	uint32_t stagingMemoryTypeIndex = UINT32_MAX;
-	for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
-	    if (!(memoryRequirements.memoryTypeBits & (1u << i)))
-		continue;
-	    if (!(memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))
-		continue;
-	    if (!(memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
-		continue;
-	    stagingMemoryTypeIndex = i;
-	    break;
-	}
-	if (stagingMemoryTypeIndex == UINT32_MAX) {
-	    logMessage(LOG_ERROR, "Failed to find suitable staging memory type\n");
-	    goto clean;
-	}
-	VkMemoryAllocateInfo memoryAllocateInfo = {
-	    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-	    .pNext = 0,
-	    .allocationSize = memoryRequirements.size,
-	    .memoryTypeIndex = stagingMemoryTypeIndex
-	};
-	vulkan->result = vkAllocateMemory(vulkan->device, &memoryAllocateInfo, NULL, &stagingBufferMemory);
+	vulkan->result = vkMapMemory(vulkan->device, stagingBufferMemory, 0, stagingBufferInfo.requirementSize, 0, &data);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate memory for staging buffer\n");
-	    goto clean;
-	}
-	vulkan->result = vkBindBufferMemory(vulkan->device, stagingBuffer, stagingBufferMemory, 0);
-	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to bind memory for staging buffer\n");
-	    goto clean;
-	}
-	
-	void *data;
-	vulkan->result = vkMapMemory(vulkan->device, stagingBufferMemory, 0, memoryRequirements.size, 0, &data);
-	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to map stagging buffer memory\n");
+	    logMessage(LOG_ERROR, "Failed to map buffer memory\n");
+	    goto clean; 
 	}
 	memcpy(data, vertices, stagingBufferInfo.size);
 	vkUnmapMemory(vulkan->device, stagingBufferMemory);
 
-	const VkBufferCreateInfo vertexBufferInfo = {
-	    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-	    .pNext = NULL,
-	    .flags = 0,
-	    .size = sizeof(vertices),
+	const Buffer vertexBufferInfo = {
+	    .size = sizeof(vertices), 
 	    .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-	    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-	    .queueFamilyIndexCount = 0,
-	    .pQueueFamilyIndices = NULL
+	    .buffer = &vulkan->vertexBuffer,
+	    .memory = &vulkan->vertexBufferMemory,
+	    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 	};
-
-	vulkan->result = vkCreateBuffer(vulkan->device, &vertexBufferInfo, NULL, &vulkan->vertexBuffer);
-	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create vertex buffer\n");
-	    goto clean;
-	}
+	if (!createBuffer(vulkan, &vertexBufferInfo)) goto clean;
 	
-	vkGetBufferMemoryRequirements(vulkan->device, vulkan->vertexBuffer, &memoryRequirements);	
-	vkGetPhysicalDeviceMemoryProperties(vulkan->physicalDevice, &memoryProperties);
-	uint32_t vertexMemoryTypeIndex = UINT32_MAX;
-	for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
-	    if (!(memoryRequirements.memoryTypeBits & (1u << i)))
-		continue;
-	    if (!(memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
-		continue;
-	    vertexMemoryTypeIndex = i;
-	    break;
-	}
-	if (vertexMemoryTypeIndex == UINT32_MAX) {
-	    logMessage(LOG_ERROR, "Failed to find suitable vertex memory type\n");
-	    goto clean;
-	}
-	memoryAllocateInfo = (VkMemoryAllocateInfo){
-	    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-	    .pNext = 0,
-	    .allocationSize = memoryRequirements.size,
-	    .memoryTypeIndex = vertexMemoryTypeIndex
-	};
-
-	vulkan->result = vkAllocateMemory(vulkan->device, &memoryAllocateInfo, NULL, &vulkan->vertexBufferMemory);
-	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate memory for vertex buffer\n");
-	    goto clean;
-	}
-	vulkan->result = vkBindBufferMemory(vulkan->device, vulkan->vertexBuffer, vulkan->vertexBufferMemory, 0);
-	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to bind memory for vertex buffer\n");
-	    goto clean;
-	}
-
 	VkCommandBuffer commandCopyBuffer = VK_NULL_HANDLE; 
 	const VkCommandBufferAllocateInfo commandBufferAllocateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,

@@ -44,9 +44,12 @@ typedef struct {
     VkImageView msaaImageView;
 
     VkCommandPool commandPool;
-    
+
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
+
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
 
     VkShaderModule shaderModule;
 } Vulkan;
@@ -104,6 +107,15 @@ typedef struct {
 } Vertex;
 
 typedef struct {
+    VkDeviceSize size;
+    VkDeviceSize requirementSize;
+    VkBufferUsageFlags usage;
+    VkBuffer *buffer;
+    VkDeviceMemory *memory;
+    VkMemoryPropertyFlags propertyFlags;
+} Buffer;
+
+typedef struct {
     const char *const fname;
     size_t spirvSize;
     uint32_t *spirvBuffer;
@@ -136,7 +148,9 @@ int createLogicalDevice(Renderer *renderer);
 int createSwapChain(Renderer *renderer);
 
 int createCommandPool(Renderer *renderer);
- 
+
+bool createBuffer(Vulkan *vulkan, Buffer *buffer);
+
 int createVertexBuffer(Renderer *renderer);
 
 int createIndexBuffer(Renderer *renderer);
@@ -154,7 +168,7 @@ int createPipeline(Renderer *renderer);
 #endif
     
 #define logMessage(level, ...)\
-logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
+    logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
 
 #if defined(CLEANUP_IMPLEMENTATION)
     #include "cleanup.h"
@@ -188,6 +202,10 @@ logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
     #include "commandPool.h"
 #endif
 
+#if defined(BUFFER_IMPLEMENTATION)
+    #include "buffer.h"
+#endif
+    
 #if defined(VERTEX_BUFFER_IMPLEMENTATION)
     #include "vertexBuffer.h"
 #endif

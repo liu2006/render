@@ -17,6 +17,9 @@
 	vkDestroyShaderModule(vulkan->device, vulkan->shaderModule, NULL);
 	free(pipeline->spirvBuffer);
 
+	vkFreeMemory(vulkan->device, vulkan->indexBufferMemory, NULL);
+	vkDestroyBuffer(vulkan->device, vulkan->indexBuffer, NULL);
+
 	vkDestroyBuffer(vulkan->device, vulkan->vertexBuffer, NULL);
 	vkFreeMemory(vulkan->device, vulkan->vertexBufferMemory, NULL);
 
