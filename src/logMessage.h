@@ -1,10 +1,10 @@
-#ifndef LOG_MESSAGE_H
-#define LOG_MESSAGE_H
+#ifndef LOG_MESSAGE_H_
+#define LOG_MESSAGE_H_
 
-#if defined(LOG_MESSAGE_IMPLEMETATION)
-    void logMessage(LogLevel level, const char *format, ...)
+#if defined(LOG_MESSAGE_IMPLEMENTATION)
+    void logMessageImpl(LogLevel level, const char *file, int line, const char *format, ...)
     {
-	FILE *stream;
+	FILE *stream = NULL;
 	if (level == LOG_NONE) return;
 
 	stream = (level == LOG_ERROR) ? stderr : stdout;
@@ -17,7 +17,11 @@
 	    [LOG_ERROR] = "ERROR"
 	};
 
-	fprintf(stream, "[%s] ", levelName[level]);
+	if (stream == stderr)
+	    fprintf(stream, "%s:%d: [%s] ", file, line, levelName[level]);
+	else 
+	    fprintf(stream, "[%s] ", levelName[level]);
+	
 	va_list args;
 	va_start(args, format);
 	vfprintf(stream, format, args);
@@ -25,5 +29,4 @@
 	fflush(stream);
     }
 #endif
-
 #endif

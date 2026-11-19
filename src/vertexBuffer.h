@@ -1,5 +1,5 @@
-#ifndef VERTEX_BUFFER_H
-#define VERTEX_BUFFER_H
+#ifndef VERTEX_BUFFER_H_
+#define VERTEX_BUFFER_H_
 
 #if defined(VERTEX_BUFFER_IMPLEMENTATION)
     int createVertexBuffer(Renderer *renderer)
@@ -27,7 +27,7 @@
 	};
 	vulkan->result = vkCreateBuffer(vulkan->device, &stagingBufferInfo, NULL, &stagingBuffer);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create staging buffer\n");
+	    logMessage(LOG_ERROR, "Failed to create staging buffer for vertices\n");
 	    goto clean;
 	} 
 	

@@ -1,5 +1,5 @@
-#ifndef INSTANCE_H
-#define INSTANCE_H
+#ifndef INSTANCE_H_
+#define INSTANCE_H_
 
 #if defined(INSTANCE_IMPLEMENTATION)
     extern const char *const requiredLayers[];
@@ -30,9 +30,6 @@
 	if (localRes != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to enumerate instance layer properties [%d]\n", localRes);
 	    goto clean;
-	}
-	for (uint32_t i = 0; i < layerPropertyCount; ++i) {
-	    logMessage(LOG_INFO, "Available layer: [%s]\n", layerProperties[i].layerName);	
 	}
 	for (uint32_t i = 0; i < instance->layerCount; ++i) {
 	    bool found = false;
@@ -93,9 +90,6 @@
 	if (vulkan->result != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to enumerate instance extension properties [%d]\n", vulkan->result);
 	    goto clean;
-	}
-	for (uint32_t i = 0; i < extensionPropertyCount; ++i) { 
-	    logMessage(LOG_INFO, "Available instance extension: [%s]\n", extensionProperties[i].extensionName);
 	}
 
 	for (uint32_t i = 0; i < instance->extensionCount; ++i) {

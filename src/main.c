@@ -1,13 +1,14 @@
-#define LOG_MESSAGE_IMPLEMETATION
+#define LOG_MESSAGE_IMPLEMENTATION
 #define CLEANUP_IMPLEMENTATION
 #define GLFW_IMPLEMENTATION
-#define VULKAN_IMPLEMENTATION
+#define RUN_IMPLEMENTATION
 #define INSTANCE_IMPLEMENTATION
 #define PHYSICAL_DEVICE_IMPLEMENTATION
 #define LOGICAL_DEVICE_IMPLEMENTATION
-#define SWAPCHAIN_IMPLEMENTATION
+#define SWAP_CHAIN_IMPLEMENTATION
 #define COMMAND_POOL_IMPLEMENTATION
 #define VERTEX_BUFFER_IMPLEMENTATION
+#define INDEX_BUFFER_IMPLEMENTATION
 #define PIPELINE_IMPLEMENTATION
 
 #include "common.h"
@@ -32,7 +33,6 @@ int main(int argc, const char **argv)
     Vulkan vulkan = {0};
     Instance instance = {0};
     PhysicalDevice physicalDevice = {0};
-    LogicalDevice logicalDevice = {0};
     SwapChain swapChain = {0};
     Pipeline pipeline = {
 	.fname = argv[1],
@@ -44,7 +44,6 @@ int main(int argc, const char **argv)
 	.vulkan = &vulkan,
 	.instance = &instance,
 	.physicalDevice = &physicalDevice,
-	.logicalDevice = &logicalDevice,
 	.swapChain = &swapChain,
 	.pipeline = &pipeline
     };

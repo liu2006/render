@@ -22,13 +22,3 @@ float4 fragMain(VSOutput output) : SV_Target
 {
     return float4(output.color, 1.0);
 }
-
-
-
-
-
-
-    
-
-
-    

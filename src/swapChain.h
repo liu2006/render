@@ -1,7 +1,7 @@
-#ifndef SWAPCHAIN_H
-#define SWAPCHAIN_H
+#ifndef SWAP_CHAIN_H_
+#define SWAP_CHAIN_H_
 
-#if defined(SWAPCHAIN_IMPLEMENTATION)
+#if defined(SWAP_CHAIN_IMPLEMENTATION)
     void *pickSurfaceProperties(void *arg)
     {
 	SurfaceTask *surfaceTask = (SurfaceTask *)arg;

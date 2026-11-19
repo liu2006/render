@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef COMMON_H_
+#define COMMON_H_
 #define _POSIX_C_SOURCE 200809L 
 
 #include <vulkan/vulkan.h>
@@ -80,10 +80,6 @@ typedef struct {
 } QueueTask;
 
 typedef struct {
-    void *ptr; 
-} LogicalDevice;
-
-typedef struct {
     VkExtent2D surfaceExtent;
     uint32_t imageCount;
 
@@ -118,12 +114,12 @@ typedef struct {
     Vulkan *vulkan;
     Instance *instance;
     PhysicalDevice *physicalDevice;
-    LogicalDevice *logicalDevice;
     SwapChain *swapChain;
     Pipeline *pipeline;
 } Renderer;
 
-void logMessage(LogLevel level, const char *format, ...);
+/* void logMessage(LogLevel level, ...); */
+void logMessageImpl(LogLevel level, const char *file, int line, const char *format, ...);
 bool run(Renderer *renderer);
 void cleanup(Renderer *renderer);
 
@@ -143,6 +139,8 @@ int createCommandPool(Renderer *renderer);
  
 int createVertexBuffer(Renderer *renderer);
 
+int createIndexBuffer(Renderer *renderer);
+
 int createPipeline(Renderer *renderer);
 
 #ifdef NDEBUG
@@ -151,9 +149,12 @@ int createPipeline(Renderer *renderer);
 #define ENABLE_VALIDATION 1
 #endif
 
-#if defined(LOG_MESSAGE_IMPLEMETATION)
+#if defined(LOG_MESSAGE_IMPLEMENTATION)
     #include "logMessage.h"
 #endif
+    
+#define logMessage(level, ...)\
+logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
 
 #if defined(CLEANUP_IMPLEMENTATION)
     #include "cleanup.h"
@@ -163,8 +164,8 @@ int createPipeline(Renderer *renderer);
     #include "glfw.h"
 #endif
 
-#if defined(VULKAN_IMPLEMENTATION)
-    #include "vulkan.h"
+#if defined(RUN_IMPLEMENTATION)
+    #include "run.h"
 #endif
 
 #if defined(INSTANCE_IMPLEMENTATION)
@@ -179,7 +180,7 @@ int createPipeline(Renderer *renderer);
     #include "logicalDevice.h"
 #endif
 
-#if defined(SWAPCHAIN_IMPLEMENTATION)
+#if defined(SWAP_CHAIN_IMPLEMENTATION)
     #include "swapChain.h"
 #endif
 
@@ -189,6 +190,10 @@ int createPipeline(Renderer *renderer);
 
 #if defined(VERTEX_BUFFER_IMPLEMENTATION)
     #include "vertexBuffer.h"
+#endif
+
+#if defined(INDEX_BUFFER_IMPLEMENTATION)
+    #include "indexBuffer.h"
 #endif
     
 #if defined(PIPELINE_IMPLEMENTATION)

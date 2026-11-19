@@ -1,7 +1,7 @@
-#ifndef VULKAN_H
-#define VULKAN_H
+#ifndef RUN_H_
+#define RUN_H_
 
-#if defined(VULKAN_IMPLEMENTATION)
+#if defined(RUN_IMPLEMENTATION)
     bool run(Renderer *renderer) {
 	if (!createWindow(renderer)) goto clean;
 	if (createInstance(renderer) != VK_SUCCESS) goto clean;
@@ -10,6 +10,7 @@
 	if (createSwapChain(renderer) != VK_SUCCESS) goto clean;
 	if (createCommandPool(renderer) != VK_SUCCESS) goto clean;
 	if (createVertexBuffer(renderer) != VK_SUCCESS) goto clean;
+	if (createIndexBuffer(renderer) != VK_SUCCESS) goto clean;
 	if (createPipeline(renderer) != VK_SUCCESS) goto clean;
 	return true; 
  clean:

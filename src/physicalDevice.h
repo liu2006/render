@@ -1,5 +1,5 @@
-#ifndef PHYSICAL_DEVICE_H
-#define PHYSICAL_DEVICE_H
+#ifndef PHYSICAL_DEVICE_H_
+#define PHYSICAL_DEVICE_H_
  
 #if defined(PHYSICAL_DEVICE_IMPLEMENTATION)
     extern const char *const requiredDeviceExtensions[];
@@ -127,9 +127,6 @@
 	physicalDevice->deviceExtensions = malloc(sizeof(*physicalDevice->deviceExtensions) * physicalDevice->deviceExtensionCount);
 	for (uint32_t i = 0; i < physicalDevice->deviceExtensionCount; ++i) {
 	    physicalDevice->deviceExtensions[i] = strdup(requiredDeviceExtensions[i]);
-	}
-	for (uint32_t i = 0; i < extensionPropertyCount; ++i) {
-	    logMessage(LOG_INFO, "Available device extension: [%s]\n", extensionProperties[i].extensionName);
 	}
 	for (uint32_t i = 0; i < physicalDevice->deviceExtensionCount; ++i) {
 	    bool found = false;
