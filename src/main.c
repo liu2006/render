@@ -8,8 +8,6 @@
 #define SWAP_CHAIN_IMPLEMENTATION
 #define COMMAND_POOL_IMPLEMENTATION
 #define BUFFER_IMPLEMENTATION
-#define VERTEX_BUFFER_IMPLEMENTATION
-#define INDEX_BUFFER_IMPLEMENTATION
 #define PIPELINE_IMPLEMENTATION
 
 #include "common.h"
@@ -49,7 +47,7 @@ int main(int argc, const char **argv)
 	.pipeline = &pipeline
     };
     if (!run(&renderer)) return 1;
-    
+
     struct timespec startTime, currentTime;
     clock_gettime(CLOCK_MONOTONIC, &startTime);
     while (!glfwWindowShouldClose(glfw.window)) { 
@@ -59,6 +57,7 @@ int main(int argc, const char **argv)
 	printf("\rRun Time: %.1fs", time);
 	fflush(stdout);
     }
+    
     printf("\n");
     fflush(stdout);
 

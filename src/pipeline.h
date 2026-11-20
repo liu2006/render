@@ -43,7 +43,7 @@
 	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED;
 	    goto clean;
 	}
-	logMessage(LOG_INFO, "Shader file read successfully\n");
+	logMessage(LOG_INFO, "Successfully read shader file\n ");
 	fclose(shaderFile);
 
 	const VkShaderModuleCreateInfo shaderModuleInfo = {
@@ -106,6 +106,8 @@
 	    .vertexAttributeDescriptionCount = 2,
 	    .pVertexAttributeDescriptions = vertexInputAttributeDescriptions
 	};
+
+	// viewport //
 	const VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 	const VkPipelineDynamicStateCreateInfo dynamicStateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -114,6 +116,7 @@
 	    .dynamicStateCount = sizeof(dynamicStates) / sizeof(*dynamicStates),
 	    .pDynamicStates = dynamicStates
 	};
+
 	
 	vulkan->result = VK_SUCCESS;
 	

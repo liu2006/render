@@ -5,11 +5,13 @@
     void logMessageImpl(LogLevel level, const char *file, int line, const char *format, ...)
     {
 	FILE *stream = NULL;
-	if (level == LOG_NONE) return;
 
+	if (level < LOG_INFO || level > LOG_ERROR) {
+	    fprintf(stderr, "[ERROR] %s:%d: Invalid log level\n", file, line);
+	    fflush(stderr);
+	    return; 
+	}
 	stream = (level == LOG_ERROR) ? stderr : stdout;
-	if (level < LOG_INFO || level > LOG_ERROR)
-	    return;
 
 	const char *levelName[] = {
 	    [LOG_INFO] = "INFO",
@@ -18,7 +20,7 @@
 	};
 
 	if (stream == stderr)
-	    fprintf(stream, "%s:%d: [%s] ", file, line, levelName[level]);
+	    fprintf(stream, "[%s] %s:%d: ", levelName[level], file, line);
 	else 
 	    fprintf(stream, "[%s] ", levelName[level]);
 	

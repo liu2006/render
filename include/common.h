@@ -14,10 +14,9 @@
 #include <time.h>
 
 typedef enum {
-    LOG_NONE = 0,
-    LOG_INFO = 1,
-    LOG_WARNING = 2,
-    LOG_ERROR = 3
+    LOG_INFO = 0,
+    LOG_WARNING = 1,
+    LOG_ERROR = 2
 } LogLevel;
 
 typedef struct {
@@ -168,7 +167,7 @@ int createPipeline(Renderer *renderer);
 #endif
     
 #define logMessage(level, ...)\
-    logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
+logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
 
 #if defined(CLEANUP_IMPLEMENTATION)
     #include "cleanup.h"
@@ -204,14 +203,6 @@ int createPipeline(Renderer *renderer);
 
 #if defined(BUFFER_IMPLEMENTATION)
     #include "buffer.h"
-#endif
-    
-#if defined(VERTEX_BUFFER_IMPLEMENTATION)
-    #include "vertexBuffer.h"
-#endif
-
-#if defined(INDEX_BUFFER_IMPLEMENTATION)
-    #include "indexBuffer.h"
 #endif
     
 #if defined(PIPELINE_IMPLEMENTATION)
