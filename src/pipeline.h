@@ -1,5 +1,5 @@
-#ifndef PIPELINE_H_
-#define PIPELINE_H_
+#ifndef M_PIPELINE_H_
+#define M_PIPELINE_H_
 
 #if defined(PIPELINE_IMPLEMENTATION)
     int createPipeline(Renderer *renderer) 

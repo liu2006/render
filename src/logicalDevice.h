@@ -1,5 +1,5 @@
-#ifndef LOGICAL_DEVICE_H_
-#define LOGICAL_DEVICE_H_
+#ifndef M_LOGICAL_DEVICE_H_
+#define M_LOGICAL_DEVICE_H_
 
 #if defined(LOGICAL_DEVICE_IMPLEMENTATION)
     int createLogicalDevice(Renderer *renderer)

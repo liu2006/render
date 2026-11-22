@@ -43,6 +43,7 @@ typedef struct {
     VkImageView msaaImageView;
 
     VkCommandPool commandPool;
+    VkCommandBuffer commandBuffer;
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -131,7 +132,6 @@ typedef struct {
     Pipeline *pipeline;
 } Renderer;
 
-/* void logMessage(LogLevel level, ...); */
 void logMessageImpl(LogLevel level, const char *file, int line, const char *format, ...);
 bool run(Renderer *renderer);
 void cleanup(Renderer *renderer);
@@ -157,6 +157,8 @@ int createVertexBuffer(Renderer *renderer);
 int createIndexBuffer(Renderer *renderer);
 
 int createPipeline(Renderer *renderer);
+
+int recordCommandBuffer(Renderer *renderer);
 
 #ifdef NDEBUG
 #define ENABLE_VALIDATION 0
@@ -211,4 +213,8 @@ logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
     #include "pipeline.h"
 #endif
 
+#if defined(COMMAND_BUFFER_IMPLEMENTATION)
+    #include "commandBuffer.h"
+#endif
+    
 #endif 

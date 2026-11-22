@@ -1,5 +1,5 @@
-#ifndef INSTANCE_H_
-#define INSTANCE_H_
+#ifndef M_INSTANCE_H_
+#define M_INSTANCE_H_
 
 #if defined(INSTANCE_IMPLEMENTATION)
     extern const char *const requiredLayers[];

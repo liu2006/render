@@ -1,5 +1,5 @@
-#ifndef SWAP_CHAIN_H_
-#define SWAP_CHAIN_H_
+#ifndef M_SWAP_CHAIN_H_
+#define M_SWAP_CHAIN_H_
 
 #if defined(SWAP_CHAIN_IMPLEMENTATION)
     void *pickSurfaceProperties(void *arg)

@@ -1,5 +1,5 @@
-#ifndef GLFW_H_
-#define GLFW_H_
+#ifndef M_GLFW_H_
+#define M_GLFW_H_
 
 #if defined(GLFW_IMPLEMENTATION) 
     bool createWindow(Renderer *renderer)

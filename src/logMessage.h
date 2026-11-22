@@ -1,5 +1,5 @@
-#ifndef LOG_MESSAGE_H_
-#define LOG_MESSAGE_H_
+#ifndef M_LOG_MESSAGE_H_
+#define M_LOG_MESSAGE_H_
 
 #if defined(LOG_MESSAGE_IMPLEMENTATION)
     void logMessageImpl(LogLevel level, const char *file, int line, const char *format, ...)

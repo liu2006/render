@@ -1,5 +1,5 @@
-#ifndef COMMAND_BUFFER_H_
-#define COMMAND_BUFFER_H_
+#ifndef M_COMMAND_POOL_H_
+#define M_COMMAND_POOL_H_
 
 #if defined(COMMAND_POOL_IMPLEMENTATION)
     int createCommandPool(Renderer *renderer) 

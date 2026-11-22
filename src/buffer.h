@@ -1,5 +1,5 @@
-#ifndef BUFFER_H_
-#define BUFFER_H_
+#ifndef M_BUFFER_H_
+#define M_BUFFER_H_
 
 #if defined(BUFFER_IMPLEMENTATION)
     bool createBuffer(Vulkan *vulkan, Buffer *buffer) {

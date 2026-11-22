@@ -1,5 +1,5 @@
-#ifndef CLEANUP_H_
-#define CLEANUP_H_
+#ifndef M_CLEANUP_H_
+#define M_CLEANUP_H_
 
 #if defined(CLEANUP_IMPLEMENTATION)
     void cleanup(Renderer *renderer) {

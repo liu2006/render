@@ -1,5 +1,5 @@
-#ifndef RUN_H_
-#define RUN_H_
+#ifndef M_RUN_H_
+#define M_RUN_H_
 
 #if defined(RUN_IMPLEMENTATION)
     bool run(Renderer *renderer) {
@@ -12,6 +12,7 @@
 	if (createVertexBuffer(renderer) != VK_SUCCESS) goto clean;
 	if (createIndexBuffer(renderer) != VK_SUCCESS) goto clean;
 	if (createPipeline(renderer) != VK_SUCCESS) goto clean;
+	if (recordCommandBuffer(renderer) != VK_SUCCESS) goto clean;
 	return true; 
  clean:
 	cleanup(renderer);

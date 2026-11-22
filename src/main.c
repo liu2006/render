@@ -9,6 +9,7 @@
 #define COMMAND_POOL_IMPLEMENTATION
 #define BUFFER_IMPLEMENTATION
 #define PIPELINE_IMPLEMENTATION
+#define COMMAND_BUFFER_IMPLEMENTATION
 
 #include "common.h"
 
@@ -52,6 +53,8 @@ int main(int argc, const char **argv)
     clock_gettime(CLOCK_MONOTONIC, &startTime);
     while (!glfwWindowShouldClose(glfw.window)) { 
 	glfwPollEvents();
+
+	
 	clock_gettime(CLOCK_MONOTONIC, &currentTime);
 	float time = currentTime.tv_sec - startTime.tv_sec + (currentTime.tv_nsec - startTime.tv_nsec) * 1e-9f;
 	printf("\rRun Time: %.1fs", time);

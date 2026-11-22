@@ -1,5 +1,5 @@
-#ifndef PHYSICAL_DEVICE_H_
-#define PHYSICAL_DEVICE_H_
+#ifndef M_PHYSICAL_DEVICE_H_
+#define M_PHYSICAL_DEVICE_H_
  
 #if defined(PHYSICAL_DEVICE_IMPLEMENTATION)
     extern const char *const requiredDeviceExtensions[];
