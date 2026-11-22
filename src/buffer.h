@@ -48,7 +48,7 @@
 	};
 	vulkan->result = vkAllocateMemory(vulkan->device, &allocateInfo, NULL, buffer->memory);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate buffer memory\m");
+	    logMessage(LOG_ERROR, "Failed to allocate buffer memory\n");
 	    return false;
 	}
 
@@ -74,7 +74,7 @@
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 	
-	const Buffer stagingBufferInfo = {
+	Buffer stagingBufferInfo = {
 	    .size = sizeof(vertices),
 	    .requirementSize = 0,
 	    .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -93,7 +93,7 @@
 	memcpy(data, vertices, stagingBufferInfo.size);
 	vkUnmapMemory(vulkan->device, stagingBufferMemory);
 
-	const Buffer vertexBufferInfo = {
+	Buffer vertexBufferInfo = {
 	    .size = sizeof(vertices), 
 	    .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 	    .buffer = &vulkan->vertexBuffer,
@@ -190,7 +190,7 @@
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 
-	const Buffer stagingBufferInfo = {
+	Buffer stagingBufferInfo = {
 	    .size = sizeof(indices), 
 	    .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 	    .buffer = &stagingBuffer,
@@ -199,7 +199,7 @@
 	};
 	if (!createBuffer(vulkan, &stagingBufferInfo)) goto clean;
 
-	const Buffer indexBufferInfo = {
+	Buffer indexBufferInfo = {
 	    .size = sizeof(indices), 
 	    .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 	    .buffer = &vulkan->indexBuffer,

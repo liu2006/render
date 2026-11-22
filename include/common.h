@@ -51,6 +51,8 @@ typedef struct {
     VkDeviceMemory indexBufferMemory;
 
     VkShaderModule shaderModule;
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
 } Vulkan;
 
 typedef struct {

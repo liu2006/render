@@ -34,8 +34,10 @@
 	VkPhysicalDeviceFeatures2 features2 = {
 	    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
 	    .pNext = &features11,
+	    .features = {
+		.sampleRateShading = VK_TRUE
+	    }
 	};
-
 	const VkDeviceCreateInfo deviceInfo = {
 	    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 	    .pNext = &features2,

@@ -14,6 +14,8 @@
 	    logMessage(LOG_ERROR, "Failed to wait for device idle");
 	}
 	
+	vkDestroyPipeline(vulkan->device, vulkan->graphicsPipeline, NULL);
+	vkDestroyPipelineLayout(vulkan->device, vulkan->pipelineLayout, NULL);
 	vkDestroyShaderModule(vulkan->device, vulkan->shaderModule, NULL);
 	free(pipeline->spirvBuffer);
 

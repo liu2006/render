@@ -92,7 +92,6 @@
 	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED;
 	    goto clean;
 	}
-
 	const VkSampleCountFlagBits sampleCounts[] = {
 	    VK_SAMPLE_COUNT_64_BIT,
 	    VK_SAMPLE_COUNT_32_BIT,
@@ -101,8 +100,8 @@
 	    VK_SAMPLE_COUNT_4_BIT,
 	    VK_SAMPLE_COUNT_2_BIT
 	};
-	VkSampleCountFlags counts =
-	    physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+	VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+		physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
 	for (size_t i = 0; i < sizeof(sampleCounts) / sizeof(sampleCounts[0]); ++i) {
 	    if (counts & sampleCounts[i]) {
