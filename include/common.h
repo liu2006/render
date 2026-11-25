@@ -167,54 +167,54 @@ int recordCommandBuffer(Renderer *renderer);
 #endif
 
 #if defined(LOG_MESSAGE_IMPLEMENTATION)
-    #include "logMessage.h"
+#include "logMessage.h"
 #endif
     
 #define logMessage(level, ...)\
 logMessageImpl(level, __FILE__, __LINE__, __VA_ARGS__)
 
 #if defined(CLEANUP_IMPLEMENTATION)
-    #include "cleanup.h"
+#include "cleanup.h"
 #endif
 
 #if defined(GLFW_IMPLEMENTATION)
-    #include "glfw.h"
+#include "glfw.h"
 #endif
 
 #if defined(RUN_IMPLEMENTATION)
-    #include "run.h"
+#include "run.h"
 #endif
 
 #if defined(INSTANCE_IMPLEMENTATION)
-    #include "instance.h"
+#include "instance.h"
 #endif
 
 #if defined(PHYSICAL_DEVICE_IMPLEMENTATION)
-    #include "physicalDevice.h"
+#include "physicalDevice.h"
 #endif
 
 #if defined(LOGICAL_DEVICE_IMPLEMENTATION)
-    #include "logicalDevice.h"
+#include "logicalDevice.h"
 #endif
 
 #if defined(SWAP_CHAIN_IMPLEMENTATION)
-    #include "swapChain.h"
+#include "swapChain.h"
 #endif
 
 #if defined(COMMAND_POOL_IMPLEMENTATION)
-    #include "commandPool.h"
+#include "commandPool.h"
 #endif
 
 #if defined(BUFFER_IMPLEMENTATION)
-    #include "buffer.h"
+#include "buffer.h"
 #endif
     
 #if defined(PIPELINE_IMPLEMENTATION)
-    #include "pipeline.h"
+#include "pipeline.h"
 #endif
 
 #if defined(COMMAND_BUFFER_IMPLEMENTATION)
-    #include "commandBuffer.h"
+#include "commandBuffer.h"
 #endif
     
 #endif 

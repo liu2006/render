@@ -7,7 +7,7 @@
 	FILE *stream = NULL;
 
 	if (level < LOG_INFO || level > LOG_ERROR) {
-	    fprintf(stderr, "[ERROR] %s:%d: Invalid log level\n", file, line);
+	    fprintf(stderr, "\x1b[31m[ERROR] %s:%d: \x1b[0mInvalid log level\n", file, line);
 	    fflush(stderr);
 	    return; 
 	}
@@ -20,9 +20,9 @@
 	};
 
 	if (stream == stderr)
-	    fprintf(stream, "[%s] %s:%d: ", levelName[level], file, line);
+	    fprintf(stream, "\x1b[31m[%s] %s:%d: \x1b[0m", levelName[level], file, line);
 	else 
-	    fprintf(stream, "[%s] ", levelName[level]);
+	    fprintf(stream, "\x1b[32m[%s] \x1b[0m", levelName[level]);
 	
 	va_list args;
 	va_start(args, format);

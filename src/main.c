@@ -27,7 +27,7 @@ int main(int argc, const char **argv)
 {
     if (argc < 2) {
         logMessage(LOG_ERROR, "Usage: %s <shader-file>\n", argv[0]);
-        return false;
+        return 1;
     }
     Glfw glfw = { .width = width, .height = height, .rate = rate};
     Vulkan vulkan = {0};
@@ -54,7 +54,6 @@ int main(int argc, const char **argv)
     while (!glfwWindowShouldClose(glfw.window)) { 
 	glfwPollEvents();
 
-	
 	clock_gettime(CLOCK_MONOTONIC, &currentTime);
 	float time = currentTime.tv_sec - startTime.tv_sec + (currentTime.tv_nsec - startTime.tv_nsec) * 1e-9f;
 	printf("\rRun Time: %.1fs", time);
