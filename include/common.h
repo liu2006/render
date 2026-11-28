@@ -22,9 +22,6 @@ typedef enum {
 typedef struct {
     bool initialized;
     GLFWwindow *window;
-    int width;
-    int height;
-    int rate;
 } Glfw;
 
 typedef struct {
@@ -57,19 +54,7 @@ typedef struct {
 } Vulkan;
 
 typedef struct {
-    uint32_t extensionCount;
-    const char **extensions;
-
-    size_t layerCount;
-    const char **layers;
-} Instance;
-
-typedef struct {
     uint32_t graphicsIndex;
-
-    uint32_t deviceExtensionCount;
-    const char **deviceExtensions;
-
     VkSampleCountFlagBits msaaSamples;
 } PhysicalDevice;
 
@@ -102,14 +87,11 @@ typedef struct {
 
 typedef struct {
     const char *const fname;
-    size_t spirvSize;
-    uint32_t *spirvBuffer;
 } Pipeline;
 
 typedef struct {
     Glfw *glfw;
     Vulkan *vulkan;
-    Instance *instance;
     PhysicalDevice *physicalDevice;
     SwapChain *swapChain;
     Pipeline *pipeline;
@@ -138,6 +120,8 @@ int createBuffer(Vulkan *vulkan, BufferInfo *buffer);
 int createVertexBuffer(Renderer *renderer);
 
 int createIndexBuffer(Renderer *renderer);
+
+bool readFile(const char *fname, uint32_t **code, size_t *codeSize);
 
 int createPipeline(Renderer *renderer);
 

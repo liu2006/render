@@ -46,8 +46,8 @@
 	    .pQueueCreateInfos = &queueInfo,
 	    .enabledLayerCount = 0,
 	    .ppEnabledLayerNames = NULL,
-	    .enabledExtensionCount = physicalDevice->deviceExtensionCount,
-	    .ppEnabledExtensionNames = physicalDevice->deviceExtensions,
+	    .enabledExtensionCount = deviceExtensionCount,
+	    .ppEnabledExtensionNames = requiredDeviceExtensions,
 	    .pEnabledFeatures = NULL
 	};
     
@@ -56,9 +56,9 @@
 	    logMessage(LOG_ERROR, "Failed to create logical device [%]\n", vulkan->result);
 	    goto clean;
 	}
-	logMessage(LOG_INFO, "Logical device created\n");
 	vkGetDeviceQueue(vulkan->device, physicalDevice->graphicsIndex, 0, &vulkan->graphicsQueue);
 	vulkan->result = VK_SUCCESS;
+	logMessage(LOG_INFO, "Logical device created\n");
  clean:
 	return vulkan->result;
     }

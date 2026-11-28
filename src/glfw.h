@@ -1,7 +1,11 @@
 #ifndef M_GLFW_H_
 #define M_GLFW_H_
 
-#if defined(GLFW_IMPLEMENTATION) 
+#if defined(GLFW_IMPLEMENTATION)
+    const int width = 1920;
+    const int height = 1080;
+    const int rate = 165;
+
     bool createWindow(Renderer *renderer)
     {
 	Glfw *glfw = renderer->glfw;
@@ -16,9 +20,9 @@
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_REFRESH_RATE, glfw->rate);
+	glfwWindowHint(GLFW_REFRESH_RATE, rate);
 
-	glfw->window = glfwCreateWindow(glfw->width, glfw->height, "vulkan", NULL, NULL);
+	glfw->window = glfwCreateWindow(width, height, "vulkan", NULL, NULL);
 	if (!glfw->window) {
 	    logMessage(LOG_ERROR, "Failed to create GLFW window\n");
 	    glfwTerminate();

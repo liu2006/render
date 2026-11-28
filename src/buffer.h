@@ -177,6 +177,7 @@
 	    goto clean; 
 	}	
 	vulkan->result = VK_SUCCESS;
+	logMessage(LOG_INFO, "Vertex buffer created\n");
  clean:
 	vkDestroyFence(vulkan->device, fence, NULL);
 	vkFreeCommandBuffers(vulkan->device, vulkan->commandPool, 1, &commandCopyBuffer);
@@ -280,6 +281,7 @@
 	    goto clean; 
 	}
 	vulkan->result = VK_SUCCESS;
+	logMessage(LOG_INFO, "Index buffer created\n");
  clean:
 	vkDestroyFence(vulkan->device, fence, NULL);
 	vkFreeCommandBuffers(vulkan->device, vulkan->commandPool, 1, &commandCopyBuffer);

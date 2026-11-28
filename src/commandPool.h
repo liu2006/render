@@ -18,8 +18,8 @@
 	    logMessage(LOG_ERROR, "Failed to create command pool [%d]\n", vulkan->result);
 	    goto clean;
 	}
-	
-	vulkan->result = VK_SUCCESS; 
+	vulkan->result = VK_SUCCESS;
+	logMessage(LOG_INFO, "Command pool created\n");
  clean:	
 	return vulkan->result;
     }

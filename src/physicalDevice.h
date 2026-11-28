@@ -2,53 +2,15 @@
 #define M_PHYSICAL_DEVICE_H_
 
 #if defined(PHYSICAL_DEVICE_IMPLEMENTATION)
-    extern const char *const requiredDeviceExtensions[];
-    extern const size_t deviceExtensionCount;
-
+    const char *const requiredDeviceExtensions[] = { "VK_KHR_swapchain" };
+    const size_t deviceExtensionCount = sizeof(requiredDeviceExtensions) / sizeof(*requiredDeviceExtensions);
     typedef struct {
 	VkResult taskRes;
 	Vulkan *vulkan;
 	PhysicalDevice *physicalDevice;
     } QueueTask;
 
-    void *findQueueFamily(void *arg) 
-    {
-	QueueTask *queueTask = (QueueTask *)arg;
-	Vulkan *vulkan = queueTask->vulkan;
-	PhysicalDevice *physicalDevice = queueTask->physicalDevice;
-	VkResult localRes = queueTask->taskRes;
-
-	uint32_t queueFamilyPropertyCount;
-	VkQueueFamilyProperties *queueFamilyProperties = NULL;
-
-	vkGetPhysicalDeviceQueueFamilyProperties(vulkan->physicalDevice, &queueFamilyPropertyCount, NULL);
-	queueFamilyProperties = malloc(sizeof(*queueFamilyProperties) * queueFamilyPropertyCount);
-	if (!queueFamilyProperties) {
-	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
-	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
-	    goto clean;
-	}
-	vkGetPhysicalDeviceQueueFamilyProperties(vulkan->physicalDevice, &queueFamilyPropertyCount, queueFamilyProperties);
-	bool supportGraphics = false;
-	for (uint32_t i = 0; i < queueFamilyPropertyCount; ++i) {
-	    if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-		physicalDevice->graphicsIndex = i;
-		supportGraphics = true;
-		break;
-	    }
-	}
-	if (!supportGraphics) {
-	    localRes = VK_ERROR_INITIALIZATION_FAILED;
-	    logMessage(LOG_ERROR, "Graphics queue not supported\n");
-	    goto clean;
-	}
-	
- clean:
-	free(queueFamilyProperties);    
-	queueTask->taskRes = localRes; 
-	return NULL;
-    }
-
+    void *findQueueFamily(void *arg);
     int pickPhysicalDevice(Renderer *renderer) 
     {
 	Vulkan *vulkan = renderer->vulkan;
@@ -116,7 +78,8 @@
 	    VK_SAMPLE_COUNT_16_BIT,
 	    VK_SAMPLE_COUNT_8_BIT,
 	    VK_SAMPLE_COUNT_4_BIT,
-	    VK_SAMPLE_COUNT_2_BIT
+	    VK_SAMPLE_COUNT_2_BIT,
+	    VK_SAMPLE_COUNT_1_BIT
 	};
 	VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
 		physicalDeviceProperties.limits.framebufferDepthSampleCounts;
@@ -145,27 +108,11 @@
 	    logMessage(LOG_ERROR, "Failed to enumerate device extension properties [%d]\n", vulkan->result);
 	    goto clean;
 	}
-	
-	physicalDevice->deviceExtensions = malloc(sizeof(*physicalDevice->deviceExtensions) * physicalDevice->deviceExtensionCount);
-	physicalDevice->deviceExtensionCount = deviceExtensionCount;
-	if (!physicalDevice->deviceExtensions) {
-	    vulkan->result = VK_ERROR_OUT_OF_HOST_MEMORY;
-	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
-	    goto clean;
-	}
-	for (size_t i = 0; i < physicalDevice->deviceExtensionCount; ++i) {
-	    physicalDevice->deviceExtensions[i] = strdup(requiredDeviceExtensions[i]);
-	    if (!physicalDevice->deviceExtensions[i]) {
-		vulkan->result = VK_ERROR_OUT_OF_HOST_MEMORY;
-		logMessage(LOG_ERROR, "Failed to malloc memory\n");
-		goto clean;
-	    }
-	}
-	for (size_t i = 0; i < physicalDevice->deviceExtensionCount; ++i) {
+	for (size_t i = 0; i < deviceExtensionCount; ++i) {
 	    bool found = false;
 	    for (uint32_t j = 0; j < extensionPropertyCount; ++j) {
-		if (strcmp(extensionProperties[j].extensionName, physicalDevice->deviceExtensions[i]) == 0) {
-		    logMessage(LOG_INFO, "Enabled Device extension: [%s]\n", physicalDevice->deviceExtensions[i]);
+		if (strcmp(extensionProperties[j].extensionName, requiredDeviceExtensions[i]) == 0) {
+		    logMessage(LOG_INFO, "Enabled Device extension: [%s]\n", requiredDeviceExtensions[i]);
 		    found = true;
 		    break;
 		}
@@ -177,8 +124,8 @@
 	    }
 	}
 	if ((pthread_join(queueThread, NULL)) != 0) {
-	    logMessage(LOG_ERROR, "Failed to join queue thread\n");
 	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED; 
+	    logMessage(LOG_ERROR, "Failed to join queue thread\n");
 	    goto clean;
 	}
 	joined = true;
@@ -193,6 +140,44 @@
 	free(extensionProperties);
 	free(physicalDevices);
 	return vulkan->result;
+    }
+
+    void *findQueueFamily(void *arg) 
+    {
+	QueueTask *queueTask = (QueueTask *)arg;
+	Vulkan *vulkan = queueTask->vulkan;
+	PhysicalDevice *physicalDevice = queueTask->physicalDevice;
+	VkResult localRes = queueTask->taskRes;
+
+	uint32_t queueFamilyPropertyCount;
+	VkQueueFamilyProperties *queueFamilyProperties = NULL;
+
+	vkGetPhysicalDeviceQueueFamilyProperties(vulkan->physicalDevice, &queueFamilyPropertyCount, NULL);
+	queueFamilyProperties = malloc(sizeof(*queueFamilyProperties) * queueFamilyPropertyCount);
+	if (!queueFamilyProperties) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
+	vkGetPhysicalDeviceQueueFamilyProperties(vulkan->physicalDevice, &queueFamilyPropertyCount, queueFamilyProperties);
+	bool supportGraphics = false;
+	for (uint32_t i = 0; i < queueFamilyPropertyCount; ++i) {
+	    if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+		physicalDevice->graphicsIndex = i;
+		supportGraphics = true;
+		break;
+	    }
+	}
+	if (!supportGraphics) {
+	    localRes = VK_ERROR_INITIALIZATION_FAILED;
+	    logMessage(LOG_ERROR, "Graphics queue not supported\n");
+	    goto clean;
+	}
+	
+ clean:
+	free(queueFamilyProperties);    
+	queueTask->taskRes = localRes; 
+	return NULL;
     }
 #endif
     

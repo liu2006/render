@@ -28,8 +28,6 @@
 	    logMessage(LOG_ERROR, "Failed to begin command buffer [%d]\n", vulkan->result);
 	    goto clean;
 	}
-
-	
 	vulkan->result = VK_SUCCESS;
  clean:
 	return vulkan->result;

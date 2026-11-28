@@ -5,10 +5,7 @@
     void cleanup(Renderer *renderer) {
 	Glfw *glfw = renderer->glfw;
 	Vulkan *vulkan = renderer->vulkan;
-	Instance *instance = renderer->instance;
-	PhysicalDevice *physicalDevice = renderer->physicalDevice;
 	SwapChain *swapChain = renderer->swapChain;
-	Pipeline *pipeline = renderer->pipeline;
 
 	if (vkDeviceWaitIdle(vulkan->device) != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to wait for device idle");
@@ -17,7 +14,6 @@
 	vkDestroyPipeline(vulkan->device, vulkan->graphicsPipeline, NULL);
 	vkDestroyPipelineLayout(vulkan->device, vulkan->pipelineLayout, NULL);
 	vkDestroyShaderModule(vulkan->device, vulkan->shaderModule, NULL);
-	free(pipeline->spirvBuffer);
 
 	vkFreeMemory(vulkan->device, vulkan->indexBufferMemory, NULL);
 	vkDestroyBuffer(vulkan->device, vulkan->indexBuffer, NULL);
@@ -38,14 +34,7 @@
 	vkDestroySwapchainKHR(vulkan->device, vulkan->swapChain, NULL);
 	vkDestroyDevice(vulkan->device, NULL);
 	vkDestroySurfaceKHR(vulkan->instance, vulkan->surface, NULL);
- 	for (uint32_t i = 0; i < physicalDevice->deviceExtensionCount; ++i) {
-	    free((void *)physicalDevice->deviceExtensions[i]);
-	}
 	vkDestroyInstance(vulkan->instance, NULL);
-	for (uint32_t i = 0; i < instance->layerCount; ++i) {
-	    free((void *)instance->layers[i]);
-	}
-	free(instance->layers);
 	if (glfw->initialized) {
 	    if (glfw->window) {
 		glfwDestroyWindow(glfw->window);

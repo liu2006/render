@@ -9,51 +9,16 @@
 	SwapChain *swapChain = renderer->swapChain;
 	Pipeline *pipeline = renderer->pipeline;
 	
-	FILE *shaderFile;
-	shaderFile = fopen(pipeline->fname, "rb");
-	if (!shaderFile) {
-	    logMessage(LOG_ERROR, "Failed to open shader file\n");
-	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED;
-	    goto clean;
-	}
-	if (fseek(shaderFile, 0, SEEK_END) != 0) {
-	    logMessage(LOG_ERROR, "Failed to seek shader file\n");
-	    fclose(shaderFile);
-	    goto clean;
-	}
-	long int pos = ftell(shaderFile);
-	if (pos == -1L) {
-	    logMessage(LOG_ERROR, "Failed to get shader file size\n");
-	    fclose(shaderFile);
-	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED;
-	    goto clean;
-	}
-	pipeline->spirvSize = (size_t)pos;
-	pipeline->spirvBuffer = malloc(pipeline->spirvSize);
-	if (fseek(shaderFile, 0, SEEK_SET) != 0) {
-	    logMessage(LOG_ERROR, "Failed to seek shader file\n");
-	    fclose(shaderFile);
-	    goto clean;
-	}
-	const size_t retCode = fread(pipeline->spirvBuffer,
-				     sizeof(*pipeline->spirvBuffer),
-				     pipeline->spirvSize / sizeof(*pipeline->spirvBuffer),
-				     shaderFile);
-	if (retCode != (size_t)pipeline->spirvSize / sizeof(*pipeline->spirvBuffer)) {
-	    logMessage(LOG_ERROR, "Failed to read shader file\n");
-	    fclose(shaderFile);
-	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED;
-	    goto clean;
-	}
-	logMessage(LOG_INFO, "Successfully read shader file\n ");
-	fclose(shaderFile);
+	uint32_t *code = NULL;	
+	size_t codeSize = 0;
+	if (!readFile(pipeline->fname, &code, &codeSize)) goto clean;
 
 	const VkShaderModuleCreateInfo shaderModuleInfo = {
 	    .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
 	    .pNext = NULL,
 	    .flags = 0,
-	    .codeSize = pipeline->spirvSize,
-	    .pCode = pipeline->spirvBuffer
+	    .codeSize = codeSize,
+	    .pCode = code
 	};
 	vulkan->result = vkCreateShaderModule(vulkan->device,&shaderModuleInfo, NULL, &vulkan->shaderModule);
 	if (vulkan->result != VK_SUCCESS) {
@@ -175,7 +140,7 @@
 	    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
 	    .alphaBlendOp = VK_BLEND_OP_ADD,
 	    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-	    VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+		VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
 	};
 	const VkPipelineColorBlendStateCreateInfo colorBlendInfo = {
 	    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -247,8 +212,57 @@
 	    goto clean;
 	}
 	vulkan->result = VK_SUCCESS;
+	logMessage(LOG_INFO, "Graphics pipeline created\n ");
  clean:
+	free(code);
 	return vulkan->result;
+    }
+
+    bool readFile(const char *fname, uint32_t **code, size_t *codeSize) {
+	FILE *shaderFile = NULL;
+	shaderFile = fopen(fname, "rb");
+	if (!shaderFile) {
+	    logMessage(LOG_ERROR, "Failed to open shader file\n");
+	    return false;
+	}
+	if (fseek(shaderFile, 0, SEEK_END) != 0) {
+	    logMessage(LOG_ERROR, "Failed to seek shader file\n");
+	    fclose(shaderFile);
+	    return false;
+	}
+	long int pos = ftell(shaderFile);
+	if (pos == -1L) {
+	    logMessage(LOG_ERROR, "Failed to get shader file size\n");
+	    fclose(shaderFile);
+	    return false;
+	}
+	*codeSize = (size_t)pos;
+	if (*codeSize % sizeof(**code) != 0 || *codeSize == 0) {
+	    logMessage(LOG_ERROR, "Invalid SPIR-V file size\n");
+	    fclose(shaderFile);
+	    return false;
+	}
+	*code = malloc(*codeSize);
+	if (!*code) {
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    fclose(shaderFile);
+	    return false;
+	}
+	if (fseek(shaderFile, 0, SEEK_SET) != 0) {
+	    logMessage(LOG_ERROR, "Failed to seek shader file\n");
+	    fclose(shaderFile);
+	    return false;
+	}
+	size_t count = *codeSize / sizeof(**code);
+	size_t readCount = fread(*code, sizeof(**code), count, shaderFile);
+	if (readCount != count) {
+	    logMessage(LOG_ERROR, "Failed to read shader file\n");
+	    fclose(shaderFile);
+	    return false;
+	}
+	logMessage(LOG_INFO, "Shader file loaded\n");
+	fclose(shaderFile);
+	return true;
     }
 #endif
 

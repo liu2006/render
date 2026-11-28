@@ -13,25 +13,14 @@
 
 #include "common.h"
 
-const int width = 1920;
-const int height = 1080;
-const int rate = 165;
-
-const char *const requiredLayers[] = { "VK_LAYER_KHRONOS_validation" };
-const size_t layerCount = sizeof(requiredLayers) / sizeof(*requiredLayers);
-
-const char *const requiredDeviceExtensions[] = { "VK_KHR_swapchain" };
-const size_t deviceExtensionCount = sizeof(requiredDeviceExtensions) / sizeof(*requiredDeviceExtensions);
-
 int main(int argc, const char **argv)
 {
     if (argc < 2) {
         logMessage(LOG_ERROR, "Usage: %s <shader-file>\n", argv[0]);
         return 1;
     }
-    Glfw glfw = { .width = width, .height = height, .rate = rate};
+    Glfw glfw = {0};
     Vulkan vulkan = {0};
-    Instance instance = {0};
     PhysicalDevice physicalDevice = {0};
     SwapChain swapChain = {0};
     Pipeline pipeline = {
@@ -40,7 +29,6 @@ int main(int argc, const char **argv)
     Renderer renderer = {
 	.glfw = &glfw,
 	.vulkan = &vulkan,
-	.instance = &instance,
 	.physicalDevice = &physicalDevice,
 	.swapChain = &swapChain,
 	.pipeline = &pipeline

@@ -7,72 +7,8 @@
 	SwapChain *swapChain;
 	VkResult taskRes;
     } SurfaceTask;
-    
-    void *pickSurfaceProperties(void *arg)
-    {
-	SurfaceTask *surfaceTask = (SurfaceTask *)arg;
-	Vulkan *vulkan = surfaceTask->vulkan;
-	VkResult localRes = VK_SUCCESS;
-	SwapChain *swapChain = surfaceTask->swapChain;
-	localRes = vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan->physicalDevice, 
-							vulkan->surface, &swapChain->formatCount, NULL);
-	if (localRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to get surface formats [%d]\n", localRes);
-	    goto clean;
-	} 
-	swapChain->formats = malloc(sizeof(*swapChain->formats) * swapChain->formatCount);
-	if (!swapChain->formats) {
-	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
-	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
-	    goto clean;
-	}
-	localRes = vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan->physicalDevice, 
-							vulkan->surface, &swapChain->formatCount, 
-							swapChain->formats);
-	if (localRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to get surface formats [%d]\n", localRes);
-	    goto clean;
-	}
-	for (uint32_t i = 0; i < swapChain->formatCount; ++i) {
-	    if (swapChain->formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
-		swapChain->formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-		swapChain->formatIndex = i;
-		break;
-	    }
-	}
-	localRes = vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan->physicalDevice, 
-							     vulkan->surface, 
-							     &swapChain->presentModeCount,
-							     NULL);
-	if (localRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to get surface present modes [%d]\n", localRes);
-	    goto clean;
-	}     
-	swapChain->presentModes = malloc(sizeof(*swapChain->presentModes) * swapChain->presentModeCount);
-	if (!swapChain->presentModes) {
-	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
-	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
-	    goto clean;
-	}
-	localRes = vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan->physicalDevice, 
-							     vulkan->surface, 
-							     &swapChain->presentModeCount,
-							     swapChain->presentModes);
-	if (localRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to get surface present modes [%d]\n", localRes);
-	    goto clean;
-	}     
-	for (uint32_t i = 0; i < swapChain->presentModeCount; ++i) {
-	    if (swapChain->presentModes[i] == VK_PRESENT_MODE_FIFO_KHR) {
-		swapChain->presentModeIndex = i;
-		break;
-	    } 
-	}
- clean:
-	surfaceTask->taskRes = localRes;
-	return NULL;
-    }
-    
+
+    void *pickSurfaceProperties(void *arg);
     int createSwapChain(Renderer *renderer) 
     {
 	Glfw *glfw = renderer->glfw;
@@ -293,6 +229,71 @@
 	free(swapChain->formats);
 	return vulkan->result; 
     } 
+    
+    void *pickSurfaceProperties(void *arg)
+    {
+	SurfaceTask *surfaceTask = (SurfaceTask *)arg;
+	Vulkan *vulkan = surfaceTask->vulkan;
+	VkResult localRes = VK_SUCCESS;
+	SwapChain *swapChain = surfaceTask->swapChain;
+	localRes = vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan->physicalDevice, 
+							vulkan->surface, &swapChain->formatCount, NULL);
+	if (localRes != VK_SUCCESS) {
+	    logMessage(LOG_ERROR, "Failed to get surface formats [%d]\n", localRes);
+	    goto clean;
+	} 
+	swapChain->formats = malloc(sizeof(*swapChain->formats) * swapChain->formatCount);
+	if (!swapChain->formats) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
+	localRes = vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan->physicalDevice, 
+							vulkan->surface, &swapChain->formatCount, 
+							swapChain->formats);
+	if (localRes != VK_SUCCESS) {
+	    logMessage(LOG_ERROR, "Failed to get surface formats [%d]\n", localRes);
+	    goto clean;
+	}
+	for (uint32_t i = 0; i < swapChain->formatCount; ++i) {
+	    if (swapChain->formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
+		swapChain->formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+		swapChain->formatIndex = i;
+		break;
+	    }
+	}
+	localRes = vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan->physicalDevice, 
+							     vulkan->surface, 
+							     &swapChain->presentModeCount,
+							     NULL);
+	if (localRes != VK_SUCCESS) {
+	    logMessage(LOG_ERROR, "Failed to get surface present modes [%d]\n", localRes);
+	    goto clean;
+	}     
+	swapChain->presentModes = malloc(sizeof(*swapChain->presentModes) * swapChain->presentModeCount);
+	if (!swapChain->presentModes) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
+	localRes = vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan->physicalDevice, 
+							     vulkan->surface, 
+							     &swapChain->presentModeCount,
+							     swapChain->presentModes);
+	if (localRes != VK_SUCCESS) {
+	    logMessage(LOG_ERROR, "Failed to get surface present modes [%d]\n", localRes);
+	    goto clean;
+	}     
+	for (uint32_t i = 0; i < swapChain->presentModeCount; ++i) {
+	    if (swapChain->presentModes[i] == VK_PRESENT_MODE_FIFO_KHR) {
+		swapChain->presentModeIndex = i;
+		break;
+	    } 
+	}
+ clean:
+	surfaceTask->taskRes = localRes;
+	return NULL;
+    }
 #endif
 
 #endif

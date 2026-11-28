@@ -2,92 +2,25 @@
 #define M_INSTANCE_H_
 
 #if defined(INSTANCE_IMPLEMENTATION)
-    extern const char *const requiredLayers[];
-    extern const size_t layerCount; 
-
+    const char *const requiredLayers[] = { "VK_LAYER_KHRONOS_validation" };
+    const size_t layerCount = sizeof(requiredLayers) / sizeof(*requiredLayers);
     typedef struct {
-	Instance *instance;
 	VkResult taskRes;
     } LayerTask;
 
-    void *enableLayers(void *arg)
-    {
-	LayerTask *layerTask = (LayerTask *)arg;
-	Instance *instance = layerTask->instance;
-	VkResult localRes = layerTask->taskRes;
-
-	uint32_t layerPropertyCount;
-	VkLayerProperties *layerProperties = NULL;
-	
-#if ENABLE_VALIDATION
-	instance->layers = malloc(sizeof(*instance->layers) * instance->layerCount);
-	instance->layerCount = layerCount;
-
-	if (!instance->layers) {
-	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
-	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
-	    goto clean;
-	}
-	for (size_t i = 0; i < instance->layerCount; ++i) {
-	    instance->layers[i] = strdup(requiredLayers[i]);
-	    if (!instance->layers[i]) {
-		logMessage(LOG_ERROR, "Failed to strdup memory\n");
-		goto clean;
-	    }
-	}
-	localRes = vkEnumerateInstanceLayerProperties(&layerPropertyCount, NULL);
-	if (localRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to enumerate instance layer properties [%d]\n", localRes);
-	    goto clean;
-	}
-	layerProperties = malloc(sizeof(*layerProperties) * layerPropertyCount);
-	if (!layerProperties) {
-	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
-	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
-	    goto clean;
-	}
-	localRes = vkEnumerateInstanceLayerProperties(&layerPropertyCount, layerProperties);
-	if (localRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to enumerate instance layer properties [%d]\n", localRes);
-	    goto clean;
-	}
-	for (size_t i = 0; i < instance->layerCount; ++i) {
-	    bool found = false;
-	    for (uint32_t j = 0; j < layerPropertyCount; ++j) {
-		if (strcmp(layerProperties[j].layerName, instance->layers[i]) == 0) {
-		    logMessage(LOG_INFO, "Enabled layer: [%s]\n", layerProperties[j].layerName);
-		    found = true;
-		    break;
-		}
-	    }
-	    if (!found) {
-		logMessage(LOG_ERROR, "Required layer is not supported: [%s]\n", instance->layers[i]);
-		localRes = VK_ERROR_LAYER_NOT_PRESENT;
-		goto clean;
-	    }
-	}
-    clean:
-	free(layerProperties);
-#else
-	(void)instance;
-	(void)layerPropertyCount;
-	(void)layerProperties;
-	logMessage(LOG_INFO, "Layer not enabled\n");    
-#endif
-	layerTask->taskRes = localRes; 
-	return NULL;
-    }
+    void *enableLayers(void *arg);
 
     int createInstance(Renderer *renderer)
     {
 	Vulkan *vulkan = renderer->vulkan;
-	Instance *instance = renderer->instance;
+
+	uint32_t extensionCount;
+	const char **extensions;
 
 	uint32_t extensionPropertyCount;
 	VkExtensionProperties *extensionProperties = NULL;
     
 	LayerTask layerTask = {
-	    .instance = instance,
 	    .taskRes = VK_SUCCESS
 	};
 	pthread_t layerThread;
@@ -95,12 +28,12 @@
 	bool joined = false;
     
 	if (pthread_create(&layerThread, NULL, enableLayers, &layerTask) != 0) {
-	    logMessage(LOG_ERROR, "Failed to create layer thread\n");
 	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED; 
+	    logMessage(LOG_ERROR, "Failed to create layer thread\n");
 	    goto clean; 
 	}
 	threadCreated = true;
-	instance->extensions = glfwGetRequiredInstanceExtensions(&instance->extensionCount);
+	extensions = glfwGetRequiredInstanceExtensions(&extensionCount);
 	vulkan->result = vkEnumerateInstanceExtensionProperties(NULL, &extensionPropertyCount, NULL);
 	if (vulkan->result != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to enumerate instance extension properties [%d]\n", vulkan->result);
@@ -117,18 +50,18 @@
 	    logMessage(LOG_ERROR, "Failed to enumerate instance extension properties [%d]\n", vulkan->result);
 	    goto clean;
 	}
-	for (uint32_t i = 0; i < instance->extensionCount; ++i) {
+	for (uint32_t i = 0; i < extensionCount; ++i) {
 	    bool found = false;
 	    for (uint32_t j = 0; j < extensionPropertyCount; ++j) {
-		if (strcmp(extensionProperties[j].extensionName, instance->extensions[i]) == 0) {
-    		    logMessage(LOG_INFO, "Enabled instance extension: [%s]\n",instance->extensions[i]);
+		if (strcmp(extensionProperties[j].extensionName, extensions[i]) == 0) {
+    		    logMessage(LOG_INFO, "Enabled instance extension: [%s]\n",extensions[i]);
 		    found = true;
 		    break;
 		}
 	    }
 	    if (!found) {
-		logMessage(LOG_ERROR, "GLFW required extension is not supported: [%s]\n", instance->extensions[i]);
 		vulkan->result = VK_ERROR_EXTENSION_NOT_PRESENT;
+		logMessage(LOG_ERROR, "GLFW required extension is not supported: [%s]\n", extensions[i]);
 		goto clean;
 	    }
 	}
@@ -159,23 +92,76 @@
 	    .pNext = NULL,
 	    .flags = 0,  
 	    .pApplicationInfo = &appInfo,
-	    .enabledLayerCount = instance->layerCount, 
-	    .ppEnabledLayerNames = instance->layers,
-	    .enabledExtensionCount = instance->extensionCount,
-	    .ppEnabledExtensionNames = instance->extensions
+	    .enabledLayerCount = layerCount, 
+	    .ppEnabledLayerNames = requiredLayers,
+	    .enabledExtensionCount = extensionCount,
+	    .ppEnabledExtensionNames = extensions
 	};
 	vulkan->result = vkCreateInstance(&instanceInfo, NULL, &vulkan->instance);
 	if (vulkan->result != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to create vulkan instance [%d]\n", vulkan->result);
 	    goto clean;
 	}
-	logMessage(LOG_INFO, "Vulkan instance created\n");
 	vulkan->result = VK_SUCCESS;
+	logMessage(LOG_INFO, "Vulkan instance created\n");
  clean:
 	if (threadCreated && !joined) pthread_join(layerThread, NULL);
 	free(extensionProperties);
 	return vulkan->result;
     }
+
+    void *enableLayers(void *arg)
+    {
+	LayerTask *layerTask = (LayerTask *)arg;
+	VkResult localRes = layerTask->taskRes;
+
+	uint32_t layerPropertyCount;
+	VkLayerProperties *layerProperties = NULL;
+	
+#if ENABLE_VALIDATION
+	localRes = vkEnumerateInstanceLayerProperties(&layerPropertyCount, NULL);
+	if (localRes != VK_SUCCESS) {
+	    logMessage(LOG_ERROR, "Failed to enumerate instance layer properties [%d]\n", localRes);
+	    goto clean;
+	}
+	layerProperties = malloc(sizeof(*layerProperties) * layerPropertyCount);
+	if (!layerProperties) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
+	localRes = vkEnumerateInstanceLayerProperties(&layerPropertyCount, layerProperties);
+	if (localRes != VK_SUCCESS) {
+	    logMessage(LOG_ERROR, "Failed to enumerate instance layer properties [%d]\n", localRes);
+	    goto clean;
+	}
+	for (size_t i = 0; i < layerCount; ++i) {
+	    bool found = false;
+	    for (uint32_t j = 0; j < layerPropertyCount; ++j) {
+		if (strcmp(layerProperties[j].layerName, requiredLayers[i]) == 0) {
+		    found = true;
+		    logMessage(LOG_INFO, "Enabled layer: [%s]\n", layerProperties[j].layerName);
+		    break;
+		}
+	    }
+	    if (!found) {
+		localRes = VK_ERROR_LAYER_NOT_PRESENT;
+		logMessage(LOG_ERROR, "Required layer is not supported: [%s]\n", requiredLayers[i]);
+		goto clean;
+	    }
+	}
+    clean:
+	free(layerProperties);
+#else
+	(void)instance;
+	(void)layerPropertyCount;
+	(void)layerProperties;
+	logMessage(LOG_INFO, "Layer not enabled\n");    
+#endif
+	layerTask->taskRes = localRes; 
+	return NULL;
+    }
+
 #endif
 
 #endif
