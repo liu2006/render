@@ -3,7 +3,12 @@
 
 #if defined(INSTANCE_IMPLEMENTATION)
     extern const char *const requiredLayers[];
-    extern const uint32_t layerCount;
+    extern const size_t layerCount; 
+
+    typedef struct {
+	Instance *instance;
+	VkResult taskRes;
+    } LayerTask;
 
     void *enableLayers(void *arg)
     {
@@ -15,10 +20,20 @@
 	VkLayerProperties *layerProperties = NULL;
 	
 #if ENABLE_VALIDATION
-	instance->layerCount = layerCount;
 	instance->layers = malloc(sizeof(*instance->layers) * instance->layerCount);
-	for (uint32_t i = 0; i < instance->layerCount; ++i) {
+	instance->layerCount = layerCount;
+
+	if (!instance->layers) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
+	for (size_t i = 0; i < instance->layerCount; ++i) {
 	    instance->layers[i] = strdup(requiredLayers[i]);
+	    if (!instance->layers[i]) {
+		logMessage(LOG_ERROR, "Failed to strdup memory\n");
+		goto clean;
+	    }
 	}
 	localRes = vkEnumerateInstanceLayerProperties(&layerPropertyCount, NULL);
 	if (localRes != VK_SUCCESS) {
@@ -26,12 +41,17 @@
 	    goto clean;
 	}
 	layerProperties = malloc(sizeof(*layerProperties) * layerPropertyCount);
+	if (!layerProperties) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
 	localRes = vkEnumerateInstanceLayerProperties(&layerPropertyCount, layerProperties);
 	if (localRes != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to enumerate instance layer properties [%d]\n", localRes);
 	    goto clean;
 	}
-	for (uint32_t i = 0; i < instance->layerCount; ++i) {
+	for (size_t i = 0; i < instance->layerCount; ++i) {
 	    bool found = false;
 	    for (uint32_t j = 0; j < layerPropertyCount; ++j) {
 		if (strcmp(layerProperties[j].layerName, instance->layers[i]) == 0) {
@@ -54,7 +74,7 @@
 	(void)layerProperties;
 	logMessage(LOG_INFO, "Layer not enabled\n");    
 #endif
-	layerTask->taskRes = localRes;
+	layerTask->taskRes = localRes; 
 	return NULL;
     }
 
@@ -70,7 +90,8 @@
 	    .instance = instance,
 	    .taskRes = VK_SUCCESS
 	};
-	pthread_t layerThread; 
+	pthread_t layerThread;
+	bool threadCreated = false;
 	bool joined = false;
     
 	if (pthread_create(&layerThread, NULL, enableLayers, &layerTask) != 0) {
@@ -78,7 +99,7 @@
 	    vulkan->result = VK_ERROR_INITIALIZATION_FAILED; 
 	    goto clean; 
 	}
-	
+	threadCreated = true;
 	instance->extensions = glfwGetRequiredInstanceExtensions(&instance->extensionCount);
 	vulkan->result = vkEnumerateInstanceExtensionProperties(NULL, &extensionPropertyCount, NULL);
 	if (vulkan->result != VK_SUCCESS) {
@@ -86,12 +107,16 @@
 	    goto clean;
 	}
 	extensionProperties = malloc(sizeof(*extensionProperties) * extensionPropertyCount);
+	if (!extensionProperties) {
+	    vulkan->result = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
 	vulkan->result = vkEnumerateInstanceExtensionProperties(NULL, &extensionPropertyCount, extensionProperties);
 	if (vulkan->result != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to enumerate instance extension properties [%d]\n", vulkan->result);
 	    goto clean;
 	}
-
 	for (uint32_t i = 0; i < instance->extensionCount; ++i) {
 	    bool found = false;
 	    for (uint32_t j = 0; j < extensionPropertyCount; ++j) {
@@ -118,15 +143,15 @@
 	};
 	
 	if ((pthread_join(layerThread, NULL)) != 0) {
-	    logMessage(LOG_ERROR, "Failed to join layer thread\n");
 	    vulkan->result = VK_ERROR_EXTENSION_NOT_PRESENT;
+	    logMessage(LOG_ERROR, "Failed to join layer thread\n");
 	    goto clean;
 	}
 	joined = true;
 	
 	if (layerTask.taskRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to enable layer [%d]\n", layerTask.taskRes);
 	    vulkan->result = layerTask.taskRes;
+	    logMessage(LOG_ERROR, "Failed to enable layer [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkInstanceCreateInfo instanceInfo = {
@@ -146,9 +171,8 @@
 	}
 	logMessage(LOG_INFO, "Vulkan instance created\n");
 	vulkan->result = VK_SUCCESS;
-
  clean:
-	if (!joined) pthread_join(layerThread, NULL);
+	if (threadCreated && !joined) pthread_join(layerThread, NULL);
 	free(extensionProperties);
 	return vulkan->result;
     }

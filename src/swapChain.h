@@ -2,11 +2,17 @@
 #define M_SWAP_CHAIN_H_
 
 #if defined(SWAP_CHAIN_IMPLEMENTATION)
+    typedef struct {
+	Vulkan *vulkan;
+	SwapChain *swapChain;
+	VkResult taskRes;
+    } SurfaceTask;
+    
     void *pickSurfaceProperties(void *arg)
     {
 	SurfaceTask *surfaceTask = (SurfaceTask *)arg;
 	Vulkan *vulkan = surfaceTask->vulkan;
-	VkResult localRes = surfaceTask->taskRes;
+	VkResult localRes = VK_SUCCESS;
 	SwapChain *swapChain = surfaceTask->swapChain;
 	localRes = vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan->physicalDevice, 
 							vulkan->surface, &swapChain->formatCount, NULL);
@@ -15,6 +21,11 @@
 	    goto clean;
 	} 
 	swapChain->formats = malloc(sizeof(*swapChain->formats) * swapChain->formatCount);
+	if (!swapChain->formats) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
 	localRes = vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan->physicalDevice, 
 							vulkan->surface, &swapChain->formatCount, 
 							swapChain->formats);
@@ -38,6 +49,11 @@
 	    goto clean;
 	}     
 	swapChain->presentModes = malloc(sizeof(*swapChain->presentModes) * swapChain->presentModeCount);
+	if (!swapChain->presentModes) {
+	    localRes = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
 	localRes = vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan->physicalDevice, 
 							     vulkan->surface, 
 							     &swapChain->presentModeCount,
@@ -63,24 +79,26 @@
 	Vulkan *vulkan = renderer->vulkan;
 	PhysicalDevice *physicalDevice = renderer->physicalDevice;
 	SwapChain *swapChain = renderer->swapChain;
-	bool joined = false;
 
 	vulkan->result = glfwCreateWindowSurface(vulkan->instance, glfw->window, NULL, &vulkan->surface);
 	if (vulkan->result != VK_SUCCESS) {
 	    logMessage(LOG_ERROR, "Failed to create window surface [%d]\n", vulkan->result);
 	    goto clean;
 	}
+	
 	SurfaceTask surfaceTask = {
 	    .vulkan = vulkan,
 	    .swapChain = swapChain,
-	    .taskRes = VK_SUCCESS
 	};
 	pthread_t surfaceThread;
+	bool threadCreated = false;
+	bool joined = false;
 
 	if ((pthread_create(&surfaceThread, NULL, pickSurfaceProperties, &surfaceTask) != 0)) {
 	    logMessage(LOG_ERROR, "Failed to create surface thread\n");
 	    goto clean;
 	}
+	threadCreated = true;
 	VkSurfaceCapabilitiesKHR surfaceCapabilities;
 	vulkan->result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vulkan->physicalDevice, 
 							     vulkan->surface, 
@@ -93,7 +111,7 @@
 	int width, height;
 	glfwGetFramebufferSize(glfw->window, &width, &height);
 	swapChain->surfaceExtent.width = width;
-	swapChain->surfaceExtent.height = height;
+	swapChain->surfaceExtent.height = height; 
 	if (surfaceCapabilities.currentExtent.width != UINT32_MAX) {
 	    swapChain->surfaceExtent = surfaceCapabilities.currentExtent;
 	}
@@ -108,7 +126,8 @@
 	joined = true;
 	
 	if (surfaceTask.taskRes != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to pick surface properties [%d]\n", surfaceTask.taskRes);
+	    vulkan->result = surfaceTask.taskRes;
+	    logMessage(LOG_ERROR, "Failed to pick surface properties [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkSwapchainCreateInfoKHR swapChainInfo = {
@@ -166,6 +185,11 @@
 	    }
 	};
 	vulkan->imageViews = malloc(sizeof(*vulkan->imageViews) * swapChain->imageCount);
+	if (!vulkan->imageViews) {
+	    vulkan->result = VK_ERROR_OUT_OF_HOST_MEMORY;
+	    logMessage(LOG_ERROR, "Failed to malloc memory\n");
+	    goto clean;
+	}
 	for (uint32_t i = 0; i < swapChain->imageCount; ++i) {
 	    imageViewInfo.image = vulkan->images[i]; 
 	    vulkan->result = vkCreateImageView(vulkan->device, &imageViewInfo, NULL, &vulkan->imageViews[i]);
@@ -174,7 +198,6 @@
 		goto clean;
 	    }
 	}
-
 	const VkImageCreateInfo msaaImageInfo = {
 	    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 	    .pNext = NULL,
@@ -198,9 +221,8 @@
 	};
     
 	vulkan->result = vkCreateImage(vulkan->device, &msaaImageInfo, NULL, &vulkan->msaaImage);
-
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create msaa image\n");
+	    logMessage(LOG_ERROR, "Failed to create msaa image [%d]\n", vulkan->result);
 	    goto clean;
 	}
 
@@ -208,8 +230,8 @@
 	vkGetImageMemoryRequirements(vulkan->device, vulkan->msaaImage,&imageMemoryRequirements);
 
 	VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
-
 	vkGetPhysicalDeviceMemoryProperties(vulkan->physicalDevice, &deviceMemoryProperties);
+	
 	uint32_t memoryTypeIndex = UINT32_MAX;
 	for (uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; ++i) {
 	    if (deviceMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
@@ -218,6 +240,7 @@
 	    }
 	}
 	if (memoryTypeIndex == UINT32_MAX) {
+	    vulkan->result = VK_ERROR_FEATURE_NOT_PRESENT;
 	    logMessage(LOG_ERROR, "Failed to find a suitable memory type");
 	    goto clean;
 	}
@@ -229,12 +252,12 @@
 	};    
 	vulkan->result = vkAllocateMemory(vulkan->device, &allocateInfo, NULL, &vulkan->msaaImageMemory);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate memory for MSAA image\n");
+	    logMessage(LOG_ERROR, "Failed to allocate memory for MSAA image [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	vulkan->result = vkBindImageMemory(vulkan->device, vulkan->msaaImage, vulkan->msaaImageMemory, 0);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to bind memory for MSAA image\n");
+	    logMessage(LOG_ERROR, "Failed to bind memory for MSAA image [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkImageViewCreateInfo msaaImageViewInfo = {
@@ -260,13 +283,12 @@
 	};
 	vulkan->result = vkCreateImageView(vulkan->device, &msaaImageViewInfo, NULL, &vulkan->msaaImageView);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create image view for MSAA");
+	    logMessage(LOG_ERROR, "Failed to create image view for MSAA [%d]", vulkan->result);
 	    goto clean;
 	}
 	vulkan->result = VK_SUCCESS;
-    
  clean:
-	if (!joined) pthread_join(surfaceThread, NULL);
+	if (threadCreated && !joined) pthread_join(surfaceThread, NULL);
 	free(swapChain->presentModes);
 	free(swapChain->formats);
 	return vulkan->result; 

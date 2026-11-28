@@ -60,14 +60,9 @@ typedef struct {
     uint32_t extensionCount;
     const char **extensions;
 
-    uint32_t layerCount;
+    size_t layerCount;
     const char **layers;
 } Instance;
-
-typedef struct {
-    Instance *instance;
-    VkResult taskRes;
-} LayerTask;
 
 typedef struct {
     uint32_t graphicsIndex;
@@ -77,12 +72,6 @@ typedef struct {
 
     VkSampleCountFlagBits msaaSamples;
 } PhysicalDevice;
-
-typedef struct {
-    VkResult taskRes;
-    Vulkan *vulkan;
-    PhysicalDevice *physicalDevice;
-} QueueTask;
 
 typedef struct {
     VkExtent2D surfaceExtent;
@@ -98,12 +87,6 @@ typedef struct {
 } SwapChain;
 
 typedef struct {
-    Vulkan *vulkan;
-    SwapChain *swapChain;
-    VkResult taskRes;
-} SurfaceTask;
-
-typedef struct {
     float position[2];
     float color[3];
 } Vertex;
@@ -115,7 +98,7 @@ typedef struct {
     VkBuffer *buffer;
     VkDeviceMemory *memory;
     VkMemoryPropertyFlags propertyFlags;
-} Buffer;
+} BufferInfo;
 
 typedef struct {
     const char *const fname;
@@ -150,7 +133,7 @@ int createSwapChain(Renderer *renderer);
 
 int createCommandPool(Renderer *renderer);
 
-bool createBuffer(Vulkan *vulkan, Buffer *buffer);
+int createBuffer(Vulkan *vulkan, BufferInfo *buffer);
 
 int createVertexBuffer(Renderer *renderer);
 

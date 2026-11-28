@@ -13,15 +13,15 @@
 
 #include "common.h"
 
-constexpr int width = 1920;
-constexpr int height = 1080;
-constexpr int rate = 165;
+const int width = 1920;
+const int height = 1080;
+const int rate = 165;
 
 const char *const requiredLayers[] = { "VK_LAYER_KHRONOS_validation" };
-const uint32_t layerCount = sizeof(requiredLayers) / sizeof(requiredLayers[0]);
+const size_t layerCount = sizeof(requiredLayers) / sizeof(*requiredLayers);
 
 const char *const requiredDeviceExtensions[] = { "VK_KHR_swapchain" };
-const uint32_t deviceExtensionCount = sizeof(requiredDeviceExtensions) / sizeof(requiredDeviceExtensions[0]);
+const size_t deviceExtensionCount = sizeof(requiredDeviceExtensions) / sizeof(*requiredDeviceExtensions);
 
 int main(int argc, const char **argv)
 {
@@ -36,8 +36,6 @@ int main(int argc, const char **argv)
     SwapChain swapChain = {0};
     Pipeline pipeline = {
 	.fname = argv[1],
-	.spirvSize = 0,
-	.spirvBuffer = 0
     };
     Renderer renderer = {
 	.glfw = &glfw,

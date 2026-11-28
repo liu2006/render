@@ -14,7 +14,7 @@
 	};
 	vulkan->result = vkAllocateCommandBuffers(vulkan->device, &allocateInfo, &vulkan->commandBuffer);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate command buffers\n");
+	    logMessage(LOG_ERROR, "Failed to allocate command buffers [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkCommandBufferBeginInfo beginInfo = {
@@ -25,9 +25,10 @@
 	};
 	vulkan->result = vkBeginCommandBuffer(vulkan->commandBuffer, &beginInfo);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to begin command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to begin command buffer [%d]\n", vulkan->result);
 	    goto clean;
 	}
+
 	
 	vulkan->result = VK_SUCCESS;
  clean:

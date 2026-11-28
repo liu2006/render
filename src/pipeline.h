@@ -9,7 +9,6 @@
 	SwapChain *swapChain = renderer->swapChain;
 	Pipeline *pipeline = renderer->pipeline;
 	
-	
 	FILE *shaderFile;
 	shaderFile = fopen(pipeline->fname, "rb");
 	if (!shaderFile) {

@@ -2,7 +2,7 @@
 #define M_BUFFER_H_
 
 #if defined(BUFFER_IMPLEMENTATION)
-    bool createBuffer(Vulkan *vulkan, Buffer *buffer) {
+    int createBuffer(Vulkan *vulkan, BufferInfo *buffer) {
 	const VkBufferCreateInfo bufferInfo = {
 	    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 	    .pNext = NULL,
@@ -16,8 +16,8 @@
 	
 	vulkan->result = vkCreateBuffer(vulkan->device, &bufferInfo, NULL, buffer->buffer);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create buffer\n");
-	    return false;
+	    logMessage(LOG_ERROR, "Failed to create buffer [%d]\n", vulkan->result);
+	    goto clean;
 	}
 
 	VkMemoryRequirements memoryRequirements;
@@ -37,8 +37,9 @@
 	    break;
 	}
 	if (memoryTypeIndex == UINT32_MAX) {
+	    vulkan->result = VK_ERROR_FEATURE_NOT_PRESENT;
 	    logMessage(LOG_ERROR, "Failed to find suitable memory type\n");
-	    return false;
+	    goto clean;
 	}
 	const VkMemoryAllocateInfo allocateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -46,18 +47,21 @@
 	    .allocationSize = memoryRequirements.size,
 	    .memoryTypeIndex = memoryTypeIndex,
 	};
+	
 	vulkan->result = vkAllocateMemory(vulkan->device, &allocateInfo, NULL, buffer->memory);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate buffer memory\n");
-	    return false;
+	    logMessage(LOG_ERROR, "Failed to allocate buffer memory [%d]\n", vulkan->result);
+	    goto clean;
 	}
 
 	vulkan->result = vkBindBufferMemory(vulkan->device, *buffer->buffer, *buffer->memory, 0);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to bind buffer memory\n");
-	    return false;
+	    logMessage(LOG_ERROR, "Failed to bind buffer memory [%d]\n", vulkan->result);
+	    goto clean;
 	}
-	return true;
+	vulkan->result = VK_SUCCESS;
+ clean:
+	return vulkan->result;
     }
 
     int createVertexBuffer(Renderer *renderer)
@@ -74,7 +78,7 @@
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 	
-	Buffer stagingBufferInfo = {
+	BufferInfo stagingBufferInfo = {
 	    .size = sizeof(vertices),
 	    .requirementSize = 0,
 	    .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -82,25 +86,25 @@
 	    .memory = &stagingBufferMemory,
 	    .propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 	};
-	if (!createBuffer(vulkan, &stagingBufferInfo)) goto clean;
-	void *data = NULL;
+	if (createBuffer(vulkan, &stagingBufferInfo) != VK_SUCCESS) goto clean;
 	
+	void *data = NULL;
 	vulkan->result = vkMapMemory(vulkan->device, stagingBufferMemory, 0, stagingBufferInfo.requirementSize, 0, &data);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to map buffer memory\n");
+	    logMessage(LOG_ERROR, "Failed to map buffer memory [%d]\n", vulkan->result);
 	    goto clean; 
 	}
 	memcpy(data, vertices, stagingBufferInfo.size);
 	vkUnmapMemory(vulkan->device, stagingBufferMemory);
 
-	Buffer vertexBufferInfo = {
+	BufferInfo vertexBufferInfo = {
 	    .size = sizeof(vertices), 
 	    .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 	    .buffer = &vulkan->vertexBuffer,
 	    .memory = &vulkan->vertexBufferMemory,
 	    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 	};
-	if (!createBuffer(vulkan, &vertexBufferInfo)) goto clean;
+	if (createBuffer(vulkan, &vertexBufferInfo) != VK_SUCCESS) goto clean;
 	
 	VkCommandBuffer commandCopyBuffer = VK_NULL_HANDLE; 
 	const VkCommandBufferAllocateInfo commandBufferAllocateInfo = {
@@ -112,7 +116,7 @@
 	};
 	vulkan->result = vkAllocateCommandBuffers(vulkan->device, &commandBufferAllocateInfo, &commandCopyBuffer);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to allocate command buffer [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkCommandBufferBeginInfo beginInfo ={
@@ -124,7 +128,7 @@
 
 	vulkan->result = vkBeginCommandBuffer(commandCopyBuffer, &beginInfo);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to begin command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to begin command buffer[%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkBufferCopy bufferCopy = {
@@ -135,7 +139,7 @@
 	vkCmdCopyBuffer(commandCopyBuffer, stagingBuffer, vulkan->vertexBuffer, 1, &bufferCopy);
 	vulkan->result = vkEndCommandBuffer(commandCopyBuffer);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to end command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to end command buffer [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkSubmitInfo submitInfo = {
@@ -163,17 +167,16 @@
 	
 	vulkan->result = vkQueueSubmit(vulkan->graphicsQueue, 1, &submitInfo, fence);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to submit command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to submit command buffer [%d]\n", vulkan->result);
 	    goto clean; 
 	}
 	
 	vulkan->result = vkWaitForFences(vulkan->device, 1, &fence, VK_TRUE, UINT64_MAX);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to wait for fence\n");
+	    logMessage(LOG_ERROR, "Failed to wait for fence [%d]\n", vulkan->result);
 	    goto clean; 
 	}	
 	vulkan->result = VK_SUCCESS;
-	
  clean:
 	vkDestroyFence(vulkan->device, fence, NULL);
 	vkFreeCommandBuffers(vulkan->device, vulkan->commandPool, 1, &commandCopyBuffer);
@@ -186,30 +189,29 @@
     {
 	Vulkan *vulkan = renderer->vulkan;
 
-	uint32_t indices[] = { 0, 1, 2, 2, 3, 0}; 
+	uint32_t indices[] = { 0, 1, 2, 2, 3, 0 }; 
 	VkBuffer stagingBuffer = VK_NULL_HANDLE;
 	VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 
-	Buffer stagingBufferInfo = {
+	BufferInfo stagingBufferInfo = {
 	    .size = sizeof(indices), 
 	    .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 	    .buffer = &stagingBuffer,
 	    .memory = &stagingBufferMemory,
 	    .propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 	};
-	if (!createBuffer(vulkan, &stagingBufferInfo)) goto clean;
+	if (createBuffer(vulkan, &stagingBufferInfo) != VK_SUCCESS) goto clean;
 
-	Buffer indexBufferInfo = {
+	BufferInfo indexBufferInfo = {
 	    .size = sizeof(indices), 
 	    .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 	    .buffer = &vulkan->indexBuffer,
 	    .memory = &vulkan->indexBufferMemory,
 	    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 	};
-	if (!createBuffer(vulkan, &indexBufferInfo)) goto clean;
+	if (createBuffer(vulkan, &indexBufferInfo) != VK_SUCCESS) goto clean;
 	
 	VkCommandBuffer commandCopyBuffer = VK_NULL_HANDLE;
-
 	const VkCommandBufferAllocateInfo commandBufferAllocateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 	    .pNext = NULL,
@@ -217,9 +219,10 @@
 	    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
 	    .commandBufferCount = 1
 	};
+	
 	vulkan->result = vkAllocateCommandBuffers(vulkan->device, &commandBufferAllocateInfo, &commandCopyBuffer);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to allocate command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to allocate command buffer [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkCommandBufferBeginInfo beginInfo = {
@@ -230,7 +233,7 @@
 	};
 	vulkan->result = vkBeginCommandBuffer(commandCopyBuffer, &beginInfo);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to begin command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to begin command buffer [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkBufferCopy bufferCopy = {
@@ -241,7 +244,7 @@
 	vkCmdCopyBuffer(commandCopyBuffer, stagingBuffer, vulkan->indexBuffer, 1, &bufferCopy);
 	vulkan->result = vkEndCommandBuffer(commandCopyBuffer);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to end command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to end command buffer [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	const VkSubmitInfo submitInfo = {
@@ -263,17 +266,17 @@
 	};
 	vulkan->result = vkCreateFence(vulkan->device, &fenceInfo, NULL, &fence);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create fence\n");
+	    logMessage(LOG_ERROR, "Failed to create fence [%d]\n", vulkan->result);
 	    goto clean; 
 	}
 	vulkan->result = vkQueueSubmit(vulkan->graphicsQueue, 1, &submitInfo, fence);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to submit command buffer\n");
+	    logMessage(LOG_ERROR, "Failed to submit command buffer [%d]\n", vulkan->result);
 	    goto clean; 
 	}
 	vulkan->result = vkWaitForFences(vulkan->device, 1, &fence, VK_TRUE, UINT64_MAX);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to wait for fence\n");
+	    logMessage(LOG_ERROR, "Failed to wait for fence [%d]\n", vulkan->result);
 	    goto clean; 
 	}
 	vulkan->result = VK_SUCCESS;
@@ -284,5 +287,6 @@
 	vkDestroyBuffer(vulkan->device, stagingBuffer, NULL);
 	return vulkan->result;
     }
-#endif 
+#endif
+    
 #endif

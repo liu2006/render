@@ -15,7 +15,7 @@
 	};
 	vulkan->result = vkCreateCommandPool(vulkan->device, &commandPoolInfo, NULL, &vulkan->commandPool);
 	if (vulkan->result != VK_SUCCESS) {
-	    logMessage(LOG_ERROR, "Failed to create command pool\n");
+	    logMessage(LOG_ERROR, "Failed to create command pool [%d]\n", vulkan->result);
 	    goto clean;
 	}
 	
